@@ -1,0 +1,25 @@
+// Локальные начертания с кириллицей, без запросов к внешним сервисам.
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/site/fonts/roboto-condensed/RobotoCondensed-Variable.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/site/fonts/roboto-condensed/RobotoCondensed-Italic-Variable.ttf') format('truetype');
+}
+
+// Узкие вертикальные буквы; наклон заголовка задаётся на строках Hero.
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url('/site/fonts/oswald/Oswald-Variable.ttf') format('truetype');
+}

@@ -1,0 +1,641 @@
+@use '../base/variables' as v;
+
+// Общая высота хедера и отступ содержимого.
+$header-bar-height: 76px;
+$header-bar-height-mobile: 64px;
+$header-top: 18px;
+$header-top-mobile: 12px;
+
+#site-header ~ main {
+  padding-top: calc($header-bar-height + $header-top + 12px);
+}
+
+// На главной фон Hero продолжается за стеклянным хедером.
+#site-header ~ main:has(> .hero) {
+  padding-top: 0;
+}
+
+#site-header ~ main > .hero {
+  margin-top: calc($header-bar-height + $header-top + 12px);
+}
+
+.header {
+  position: fixed;
+  z-index: 1000;
+  top: $header-top;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  transition: transform 0.5s ease;
+}
+
+.header.is-hidden:not(.is-active) {
+  transform: translateY(calc(-100% - 30px));
+}
+
+// Как в кикбоксинге: общая сетка .container, панель внутри неё.
+.header__container {
+  max-width: none;
+  padding-inline: 3.8vw;
+  position: relative;
+  z-index: 2;
+}
+
+.header__inner {
+  display: flex;
+  align-items: center; 
+  justify-content: space-between;
+  gap: 22px;
+  min-height: $header-bar-height;
+  padding: 7px 20px;
+  border: 1px solid rgba(v.$color-white, 0.16);
+  border-radius: 10px;
+  background: rgba(v.$color-background, 0.78);
+  -webkit-backdrop-filter: blur(19px);
+  backdrop-filter: blur(19px);
+  box-shadow: 0 8px 28px rgba(v.$color-black, 0.16);
+  pointer-events: auto;
+  color: v.$color-text;
+}
+
+.header__brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  white-space: nowrap;
+  color: v.$color-text;
+}
+
+.header__logo {
+  display: block;
+  width: 62px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.header__wordmark {
+  position: relative;
+  display: block;
+  padding-left: 12px;
+  border-left: 1px solid v.$color-red;
+  font-family: v.$font-display;
+  font-size: 24px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+}
+
+.header__wordmark span {
+  color: v.$color-red;
+}
+
+.header__brand:hover {
+  color: v.$color-text;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  gap: clamp(14px, 1.45vw, 23px);
+  min-width: 0;
+}
+
+.header__nav > a:not(.header__signup),
+.header__events > summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 0;
+  color: v.$color-text;
+  font-family: v.$font-display;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: color v.$duration-fast ease;
+}
+
+.header__nav > a:hover:not(.header__signup),
+.header__nav a.is-current:not(.header__signup),
+.header__events > summary:hover,
+.header__events.is-current > summary,
+.header__events[open] > summary {
+  color: v.$color-white;
+}
+
+.header__events {
+  position: relative;
+}
+.header__events > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.header__events > summary::-webkit-details-marker {
+  display: none;
+}
+.header__chevron {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: inherit;
+  transform: translateY(-1px);
+  transition: transform 0.25s ease;
+}
+
+.header__events[open] .header__chevron {
+  transform: translateY(-1px) rotate(180deg);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(v.$color-white, 0.24);
+}
+
+.header__search,
+.header__burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: v.$color-text;
+  transition: color v.$duration-fast ease;
+}
+.header__search svg {
+  width: 20px;
+  height: 20px;
+}
+.header__search:hover,
+.header__burger:hover {
+  color: v.$color-red;
+}
+
+.header__signup {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 22px;
+  color: v.$color-white;
+  font-family: v.$font-display;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.header__signup::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(110deg, v.$color-red, v.$color-red-hover);
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  content: '';
+  transition: filter v.$duration-fast ease;
+}
+.header__signup:hover {
+  color: v.$color-white;
+}
+.header__signup:hover::before {
+  filter: brightness(1.16);
+}
+.header__signup-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.header__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 170px;
+  padding: 6px;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-card;
+  background: v.$color-surface;
+  box-shadow: v.$shadow-card;
+}
+
+.header__dropdown a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  transition:
+    background-color v.$duration-fast ease,
+    color v.$duration-fast ease;
+}
+
+.header__dropdown a:hover {
+  background: v.$color-card;
+  color: v.$color-red;
+}
+
+.header__burger,
+.header__signup--mobile {
+  display: none;
+}
+
+.header__burger {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.header__burger {
+  flex-shrink: 0;
+}
+.header__burger-icon {
+  display: block;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.header__burger-icon path {
+  transform-origin: 12px 12px;
+  transition:
+    transform 0.35s ease,
+    opacity 0.3s ease;
+}
+.header__burger-icon path:first-child {
+  transform: translateY(-7px);
+}
+.header__burger-icon path:last-child {
+  transform: translateY(7px);
+}
+.header.is-active .header__burger-icon path:first-child {
+  transform: rotate(45deg);
+}
+.header.is-active .header__burger-icon path:nth-child(2) {
+  opacity: 0;
+}
+.header.is-active .header__burger-icon path:last-child {
+  transform: rotate(-45deg);
+}
+
+// Плавное подчёркивание навигации, как в кикбоксинге.
+.header__nav > a:not(.header__signup),
+.header__events > summary {
+  position: relative;
+}
+.header__nav > a:not(.header__signup)::after,
+.header__events > summary::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: v.$color-red;
+  transform: scaleX(0);
+  transition: transform 0.35s ease;
+  content: '';
+}
+.header__nav > a:hover::after,
+.header__nav > a.is-current::after,
+.header__events > summary:hover::after,
+.header__events.is-current > summary::after,
+.header__events[open] > summary::after {
+  transform: scaleX(1);
+}
+
+// Поиск по существующим публичным разделам (без API и CMS).
+.site-search {
+  width: calc(100% - 32px);
+  max-width: 560px;
+  max-height: calc(100dvh - 40px);
+  padding: 24px;
+  overflow-y: auto;
+  border: 1px solid v.$color-border;
+  border-radius: 16px;
+  background: v.$color-surface;
+  color: v.$color-text;
+}
+
+.site-search::backdrop {
+  background: rgba(v.$color-black, 0.75);
+  backdrop-filter: blur(5px);
+}
+
+.site-search__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.site-search__top h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.site-search__close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: v.$color-card;
+  color: v.$color-text;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.site-search__label {
+  display: block;
+  margin-bottom: 6px;
+  color: v.$color-muted;
+  font-size: 14px;
+}
+
+.site-search__input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-card;
+  background: v.$color-background;
+  color: v.$color-text;
+  font-size: 16px;
+}
+
+.site-search__summary {
+  margin: 14px 0 8px;
+  color: v.$color-muted;
+  font-size: 13px;
+}
+
+.site-search__results a {
+  display: block;
+  padding: 10px 0;
+  border-bottom: 1px solid v.$color-border;
+  font-size: 15px;
+}
+
+.site-search__results a[hidden] {
+  display: none;
+}
+
+.site-search__results a:hover {
+  color: v.$color-red;
+}
+
+.mobile-menu {
+  overscroll-behavior: contain;
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  background: #0b0b0b;
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-18px);
+  transition:
+    opacity 0.42s ease,
+    transform 0.5s ease,
+    visibility 0.42s;
+}
+.header.is-active .mobile-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.mobile-menu__inner {
+  width: 100%;
+  max-width: 1720px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 118px 32px 35px;
+  display: flex;
+  flex-direction: column;
+}
+.mobile-menu__label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 23px;
+}
+.mobile-menu__nav {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.mobile-menu__nav a {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font:
+    600 clamp(25px, 7.8vw, 40px)/1.16 'Oswald',
+    v.$font-display;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.mobile-menu__nav a:hover,
+.mobile-menu__nav a.is-current {
+  color: v.$color-red;
+}
+.mobile-menu__bottom {
+  margin-top: auto;
+  padding-top: 30px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+body.menu-open {
+  overflow: hidden;
+}
+
+.mobile-menu__inner > .header__signup--mobile {
+  align-self: flex-start;
+  margin-top: 24px;
+}
+
+// Уплотнение на ноутбуках без изменения JS-брейкпоинта.
+@media (min-width: 1181px) and (max-width: 1450px) {
+  .header__inner {
+    gap: 14px;
+    padding-inline: 16px;
+  }
+  .header__brand {
+    gap: 9px;
+  }
+  .header__logo {
+    width: 55px;
+    height: 54px;
+  }
+  .header__wordmark {
+    font-size: 20px;
+    padding-left: 9px;
+  }
+  .header__nav {
+    gap: 14px;
+  }
+  .header__nav > a:not(.header__signup),
+  .header__events > summary {
+    font-size: 12px;
+  }
+  .header__actions {
+    gap: 8px;
+    padding-left: 8px;
+  }
+  .header__signup {
+    padding-inline: 18px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1180px) {
+  #site-header ~ main {
+    padding-top: calc($header-bar-height-mobile + $header-top-mobile + 10px);
+  }
+  #site-header ~ main:has(> .hero) {
+    padding-top: 0;
+  }
+  #site-header ~ main > .hero {
+    margin-top: calc($header-bar-height-mobile + $header-top-mobile + 10px);
+  }
+  .header {
+    top: $header-top-mobile;
+  }
+  .header__inner {
+    min-height: $header-bar-height-mobile;
+    padding: 5px 16px;
+    gap: 10px;
+  }
+  .header__logo {
+    width: 55px;
+    height: 50px;
+  }
+  .header__wordmark {
+    font-size: 22px;
+  }
+  .header__nav {
+    display: none;
+  }
+  .header__actions {
+    border-left: 0;
+    padding-left: 0;
+    gap: 8px;
+  }
+  .header__burger {
+    display: inline-flex;
+    width: 40px;
+    height: 44px;
+  }
+  .header__signup--mobile {
+    display: inline-flex;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  .header__container {
+    padding-inline: v.$gutter-mobile;
+  }
+  .header {
+    top: 10px;
+  }
+  .header__inner {
+    padding-inline: 12px;
+  }
+  .header__brand {
+    gap: 8px;
+  }
+  .header__logo {
+    width: 48px;
+    height: 48px;
+  }
+  .header__wordmark {
+    font-size: 19px;
+    padding-left: 8px;
+  }
+  .header__actions {
+    gap: 4px;
+  }
+  .header__search {
+    width: 40px;
+    height: 44px;
+  }
+  .header__burger {
+    width: 40px;
+    height: 44px;
+  }
+  .mobile-menu__inner {
+    padding: 94px 24px max(28px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 600px) {
+  .header__actions > .header__signup {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .header__container {
+    padding-inline: 22px;
+  }
+  .header__inner {
+    padding-inline: 8px;
+    gap: 8px;
+  }
+  .header__brand {
+    gap: 6px;
+  }
+  .header__actions {
+    gap: 0;
+  }
+  .header__wordmark {
+    font-size: 15px;
+    padding-left: 6px;
+  }
+  .header__logo {
+    width: 36px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 375px) {
+  .mobile-menu__inner {
+    padding-inline: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .header *,
+  .site-search * {
+    transition: none;
+  }
+}

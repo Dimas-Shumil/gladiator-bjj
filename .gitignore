@@ -1,0 +1,25 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+coverage/
+
+# Закрытые оригиналы и подготовленные файлы новостей
+var/news-media/
+
+var/people-media/
+
+var/competition-media/
+
+# 08.7: архивные оригиналы (не публичная директория)
+var/history-media/
+
+var/site-media/
+backups/*
+!backups/.gitkeep

@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  login        String   @unique
+  name         String
+  passwordHash String
+  role         String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+  gymId        String?
+  gym          Gym? @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  sessions     AdminSession[]
+  @@map("User")
+}
+
+// Таблица прежних express-session не используется; сохраняется для безопасного обновления.
+model LegacySession {
+  sid     String   @id
+  data    String
+  expires DateTime
+  @@index([expires])
+  @@map("Session")
+}
+
+model Student {
+  deletedAt DateTime?
+  gymId String?
+  gym Gym? @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  @@index([gymId])
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @default("")
+  parent    String   @default("")
+  start     String
+  group     String   @default("")
+  trainer   String   @default("")
+  price     Int
+  status    String
+  note      String   @default("")
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments  Payment[]
+  attendance AttendanceRecord[]
+}
+
+model Payment {
+  deletedAt DateTime?
+  id        String   @id @default(cuid())
+  student   String
+  pupil     Student  @relation(fields: [student], references: [id], onDelete: Restrict)
+  amount    Int
+  received  String
+  period    String
+  comment   String   @default("")
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  revisions PaymentRevision[]
+  @@index([received])
+  @@index([student, period])
+}
+
+model PaymentRevision {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  before    String
+  reason    String
+  actorId   String
+  createdAt DateTime @default(now())
+}
+
+model News {
+  slug String? @unique
+  publishedPayload String?
+  publishedOn DateTime?
+  assets NewsAsset[]
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("draft")
+  payload   String
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  gymId String?
+  @@index([gymId, createdAt])
+  id        String   @id @default(cuid())
+  actorId   String
+  scope     String
+  entityId  String
+  action    String
+  createdAt DateTime @default(now())
+  @@index([scope, createdAt])
+}
+
+model AdminSession {
+  id            String @id @default(cuid())
+  adminId       String
+  tokenHash     String @unique
+  csrfTokenHash String
+  expiresAt     DateTime
+  lastUsedAt    DateTime @default(now())
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  admin         Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model NewsAsset {
+  id String @id
+  newsId String
+  news News @relation(fields: [newsId], references: [id], onDelete: Restrict)
+  size Int
+  createdAt DateTime @default(now())
+}
+
+// Публичные биографии не связаны с приватными учениками и оплатами.
+model Person {
+ id String @id @default(cuid())
+ name String
+ status String @default("draft")
+ payload String
+ publishedPayload String?
+ slug String? @unique
+ version Int @default(1)
+ publishedOn DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ assets PersonAsset[]
+}
+model PersonAsset {
+ id String @id
+ personId String
+ person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+ size Int
+ createdAt DateTime @default(now())
+}
+
+model Competition {
+ id String @id @default(cuid())
+ title String
+ status String @default("draft")
+ payload String
+ publishedPayload String?
+ slug String? @unique
+ version Int @default(1)
+ publishedOn DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ assets CompetitionAsset[]
+}
+model CompetitionAsset {
+ id String @id
+ competitionId String
+ competition Competition @relation(fields: [competitionId], references: [id], onDelete: Restrict)
+ size Int
+ kind String
+ createdAt DateTime @default(now())
+}
+
+// 08.7 История: редакционная копия и утвержденный публичный снимок независимы.
+model HistoryMaterial {
+  id               String   @id @default(cuid())
+  title            String
+  status           String   @default("draft")
+  payload          String
+  publishedPayload String?
+  slug             String?  @unique
+  version          Int      @default(1)
+  publishedOn      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  assets           HistoryAsset[]
+}
+
+model HistoryAsset {
+  id         String @id
+  materialId String
+  material   HistoryMaterial @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  size       Int
+  createdAt  DateTime @default(now())
+  @@index([materialId])
+}
+
+// 08.8 Публичные страницы: рабочие данные отдельно от снимка, утверждённого владельцем.
+model SitePage {
+  key              String   @id
+  payload          String
+  publishedPayload String?
+  version          Int      @default(1)
+  publishedOn      DateTime?
+  updatedAt        DateTime @updatedAt
+}
+
+model FederationDocument {
+  id               String   @id @default(cuid())
+  title            String
+  status           String   @default("draft")
+  payload          String
+  publishedPayload String?
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  publishedOn      DateTime?
+}
+
+// В отличие от файлов новостей/спортсменов, медиа этих разделов принадлежат странице или документу.
+model SiteAsset {
+  id         String   @id
+  ownerKey   String
+  kind       String
+  size       Int
+  createdAt  DateTime @default(now())
+  @@index([ownerKey])
+}
+
+// Два зала. Историческое поле Student.group сохраняется; связь по названию внутри зала.
+// Совпадение названия группы связывает ученика со справочником; переименование группы
+// запрещено, чтобы сохранять такую привязку без изменения старых записей.
+// gymId=null: прежний учёт, доступный только OWNER до явного распределения.
+model TrainingGroup {
+  deletedAt DateTime?
+  gymId String?
+  gym Gym? @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  @@index([gymId])
+  id          String @id @default(cuid())
+  name        String
+  trainer     String @default("")
+  description String @default("")
+  status      String @default("active")
+  version     Int @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sessions    GymSession[]
+  @@unique([gymId, name])
+}
+
+model GymSession {
+  gymId String?
+  gym Gym? @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  @@index([gymId])
+  id        String @id @default(cuid())
+  groupId   String?
+  group     TrainingGroup? @relation(fields:[groupId],references:[id],onDelete:Restrict)
+  title     String
+  heldOn    String
+  startsAt  String
+  endsAt    String
+  trainer   String @default("")
+  note      String @default("")
+  status    String @default("planned")
+  version   Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  attendance AttendanceRecord[]
+  @@index([heldOn])
+  @@index([groupId,heldOn])
+}
+
+model AttendanceRecord {
+  id        String @id @default(cuid())
+  sessionId String
+  studentId String
+  session   GymSession @relation(fields:[sessionId],references:[id],onDelete:Restrict)
+  student   Student @relation(fields:[studentId],references:[id],onDelete:Restrict)
+  status    String
+  note      String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([sessionId,studentId])
+  @@index([studentId])
+}
+
+model Gym {
+ id String @id
+ name String
+ admins Admin[]
+ students Student[]
+ groups TrainingGroup[]
+ sessions GymSession[]
+ finances FinanceEntry[]
+}
+
+// Только самостоятельные доходы/расходы; оплаты учеников читаются из Payment.
+model FinanceEntry {
+ id String @id @default(cuid())
+ gymId String?
+ gym Gym? @relation(fields: [gymId], references: [id], onDelete: Restrict)
+ kind String
+ amount Int
+ occurredOn String
+ category String
+ comment String @default("")
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([gymId, occurredOn])
+}

@@ -1,0 +1,44 @@
+{
+  "name": "gladiator-bjj",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build:css": "sass site/sass/main.scss site/css/main.css --no-source-map --style=expanded && sass site/sass/main.scss site/css/main.min.css --no-source-map --style=compressed",
+    "watch:css": "sass --watch site/sass/main.scss:site/css/main.min.css --no-source-map --style=compressed",
+    "db:generate": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "build:admin": "sass site/sass/admin.scss site/css/admin.css --no-source-map --style=expanded && sass site/sass/admin.scss site/css/admin.min.css --no-source-map --style=compressed",
+    "test": "node --test tests/*.test.cjs",
+    "user:create": "node prisma/create-admin.js",
+    "db:backup": "node scripts/backup-db.js",
+    "build:pwa": "sass site/sass/pwa.scss site/css/pwa.min.css --no-source-map --style=compressed",
+    "build:components": "node scripts/build-public-components.mjs",
+    "build:public": "npm run build:components && npm run build:css"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "argon2": "0.45.1",
+    "cookie-parser": "1.4.7",
+    "dotenv": "16.4.7",
+    "express": "4.22.3",
+    "express-rate-limit": "8.7.2",
+    "helmet": "8.3.0",
+    "pdf-lib": "1.17.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "prisma": "6.19.3",
+    "sass": "^1.93.0"
+  },
+  "engines": {
+    "node": ">=24.13.1 <25"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.0"
+  },
+  "type": "module",
+  "main": "server.js"
+}

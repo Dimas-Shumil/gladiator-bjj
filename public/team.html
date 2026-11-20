@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Спортивный состав | GLADIATOR BJJ</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="../site/css/main.min.css?v=static-header5"><script src="../site/scripts/main.js?v=static-header5" defer></script></head><body><!-- site-component:header:start -->
+<header class="header" id="site-header" data-version="static-header5">
+  <div class="container header__container">
+    <div class="header__inner">
+      <a class="header__brand" href="/" aria-label="GLADIATOR BJJ — главная">
+        <img
+          class="header__logo"
+          src="/site/img/logo/gladiator.webp"
+          width="600"
+          height="518"
+          alt=""
+        />
+        <span class="header__wordmark">GLADIATOR <span>BJJ</span></span>
+      </a>
+      <nav class="header__nav" aria-label="Основная навигация">
+        <a href="/about">О клубе</a>
+        <a href="/training">Тренировки</a>
+        <a href="/team#trainers">Тренеры</a>
+        <a href="/team#athletes">Спортсмены</a>
+        <details class="header__events">
+          <summary>
+            События
+            <svg
+              class="header__chevron"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m5 9 7 7 7-7" />
+            </svg>
+          </summary>
+          <div class="header__dropdown">
+            <a href="/competitions">Соревнования</a>
+            <a href="/news">Новости</a>
+          </div>
+        </details>
+        <a href="/contacts">Контакты</a>
+      </nav>
+      <div class="header__actions">
+        <button
+          class="header__search"
+          type="button"
+          aria-label="Поиск по разделам"
+          aria-controls="site-search"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+        </button>
+        <a class="header__signup" href="/contacts">
+          Записаться
+          <svg
+            class="header__signup-icon"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 12h15m-6-6 6 6-6 6" />
+          </svg>
+        </a>
+        <button
+          class="header__burger"
+          type="button"
+          aria-label="Открыть меню"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <svg
+            class="header__burger-icon"
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M2 12h20" />
+            <path d="M2 12h20" />
+            <path d="M2 12h20" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true" inert>
+    <div class="mobile-menu__inner">
+      <span class="mobile-menu__label">Спортивный клуб «Гладиатор»</span>
+      <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
+        <a href="/about">О клубе</a>
+        <a href="/training">Тренировки</a>
+        <a href="/team#trainers">Тренеры</a>
+        <a href="/team#athletes">Спортсмены</a>
+        <a href="/competitions">Соревнования</a>
+        <a href="/news">Новости</a>
+        <a href="/gallery">Фотогалерея</a>
+        <a href="/contacts">Контакты</a>
+      </nav>
+      <a class="header__signup header__signup--mobile" href="/contacts"
+        >Записаться</a
+      >
+      <p class="mobile-menu__bottom">GLADIATOR BJJ</p>
+    </div>
+  </div>
+</header>
+
+<dialog
+  class="site-search"
+  id="site-search"
+  aria-labelledby="site-search-title"
+>
+  <div class="site-search__top">
+    <h2 id="site-search-title">Поиск по разделам</h2>
+    <button class="site-search__close" type="button" aria-label="Закрыть поиск">
+      ×
+    </button>
+  </div>
+  <label class="site-search__label" for="site-search-input"
+    >Название раздела</label
+  >
+  <input
+    class="site-search__input"
+    id="site-search-input"
+    type="search"
+    placeholder="Например, тренировки"
+    autocomplete="off"
+    maxlength="100"
+  />
+  <p class="site-search__summary" role="status"></p>
+  <nav class="site-search__results" aria-label="Результаты поиска">
+    <a href="/" data-keywords="гладиатор gladiator bjj">Главная</a>
+    <a href="/about">О клубе</a>
+    <a href="/training" data-keywords="расписание абонементы занятия"
+      >Тренировки</a
+    >
+    <a href="/team#trainers" data-keywords="состав наставник тренер">Тренеры</a>
+    <a href="/team#athletes" data-keywords="состав спортсмен">Спортсмены</a>
+    <a href="/competitions" data-keywords="события турниры">Соревнования</a>
+    <a href="/news" data-keywords="события">Новости</a>
+    <a href="/gallery" data-keywords="фото медиатека">Фотогалерея</a>
+    <a href="/contacts" data-keywords="записаться адрес телефон">Контакты</a>
+  </nav>
+</dialog>
+<!-- site-component:header:end --><main><section class="placeholder"><h1>Спортивный состав</h1><section id="trainers"><h2>Тренеры</h2><p>Раздел готовится к наполнению.</p></section><section id="athletes"><h2>Спортсмены</h2><p>Раздел готовится к наполнению.</p></section></section></main><!-- site-component:footer:start -->
+<footer class="footer" id="site-footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__about">
+        <a class="footer__brand" href="/" aria-label="GLADIATOR BJJ — главная"><img class="footer__logo" src="/site/img/logo/gladiator.webp" width="600" height="518" alt="" loading="lazy"><span class="footer__wordmark">GLADIATOR <span>BJJ</span></span></a>
+        <p class="footer__description">Клуб бразильского джиу-джитсу Республики Хакасия</p>
+      </div>
+      <div class="footer__column">
+        <h2 class="footer__title">Клуб</h2>
+        <nav class="footer__nav" aria-label="О клубе">
+          <a href="/about">О клубе</a>
+          <a href="/training">Тренировки</a>
+          <a href="/team#trainers">Тренеры</a>
+          <a href="/team#athletes">Спортсмены</a>
+        </nav>
+      </div>
+      <div class="footer__column">
+        <h2 class="footer__title">События</h2>
+        <nav class="footer__nav" aria-label="События клуба">
+          <a href="/competitions">Соревнования</a>
+          <a href="/news">Новости</a>
+          <a href="/gallery">Фотогалерея</a>
+        </nav>
+      </div>
+      <div class="footer__column">
+        <h2 class="footer__title">Контакты</h2>
+        <nav class="footer__nav" aria-label="Связаться с клубом">
+          <a href="/contacts">Связаться с клубом</a>
+          <a href="/contacts">Записаться на тренировку</a>
+        </nav>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p class="footer__copyright">© GLADIATOR BJJ</p>
+      <a href="/privacy">Политика конфиденциальности</a>
+    </div>
+  </div>
+</footer>
+<!-- site-component:footer:end --></body></html>
