@@ -5,7 +5,10 @@ import {HttpError,text,date,version} from '../lib/validation.js';
 const fail=m=>{throw new HttpError(422,m);};
 export const competitionMediaDir=c=>c.competitionUploadDir||path.join(c.ROOT,'var/competition-media');
 export const competitionDTO=r=>({...JSON.parse(r.payload),id:r.id,status:r.status,slug:r.slug,version:r.version,hasPublished:!!r.publishedPayload,hasChanges:!!r.publishedPayload&&r.payload!==r.publishedPayload});
-export const publicCompetition=r=>({...JSON.parse(r.publishedPayload),id:r.id,slug:r.slug});
+export function publicCompetition(row) {
+ const {results, resultsText, ...entry} = JSON.parse(row.publishedPayload);
+ return {...entry, id: row.id, slug: row.slug};
+}
 export async function publishedCompetitions(db){return (await db.competition.findMany({where:{status:'published',publishedPayload:{not:null}}})).map(publicCompetition).sort((a,b)=>a.startDate.localeCompare(b.startDate));}
 export function validateCompetition(b,publishing=false){
  if(!b||typeof b!=='object'||Array.isArray(b))fail('Ожидается объект соревнования.');
@@ -29,7 +32,7 @@ export function validateCompetition(b,publishing=false){
  if(publishing&&(!d.startDate||!d.endDate||!d.location||!d.description||!d.disciplines.length))fail('Для публикации заполните обе даты, место, описание и дисциплины.');
  return d;
 }
-export const competitionFiles=p=>[p.image,...p.photos.map(x=>x.src),...p.documents.map(x=>x.url),...p.results.map(x=>x.url)].filter(Boolean);
+export const competitionFiles=p=>[p.image,...p.photos.map(x=>x.src),...p.documents.map(x=>x.url),...(p.results || []).map(x=>x.url)].filter(Boolean);
 export async function checkCompetitionFiles(db,config,p,id){
  for(const src of competitionFiles(p)){const key=path.basename(src);if(!await db.competitionAsset.findFirst({where:{id:key,competitionId:id||''}}))fail('Файл не принадлежит этому соревнованию.');try{await access(path.join(competitionMediaDir(config),key));}catch{fail('Файл отсутствует. Загрузите его снова.');}}
  for(const personId of p.participants)if(!await db.person.findUnique({where:{id:personId}}))fail('Публичный профиль участника не найден. Ученики зала здесь не используются.');

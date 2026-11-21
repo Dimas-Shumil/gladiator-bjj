@@ -1,6 +1,27 @@
-const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function newsArticle(n){
- const image=(src,alt,caption,credit='')=>src?`<figure class="news-cover"><img src="${e(src)}" alt="${e(alt)}"><figcaption>${e(caption)} ${e(credit)}</figcaption></figure>`:'';
- return `<article><section class="stage-hero page-hero"><img class="stage-hero__image" src="/site/img/hall-archive.webp" alt=""><div class="container"><nav class="stage-crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a><span>/</span><a href="/news">Новости</a></nav><span class="stage-hero__label">${e(n.category)}</span><h1>${e(n.title)}</h1><div class="news-item-meta"><time datetime="${e(n.publishedAt)}">${e(n.publishedAt)}</time></div></div></section><section class="news-article" aria-label="Текст публикации"><div class="container">${image(n.cover,n.alt,n.coverCaption,n.coverCredit)}<div class="news-article__body"><p class="news-article__lead">${e(n.lead)}</p>${n.text.split(/\n\s*\n/).map(t=>`<p class="news-text">${e(t)}</p>`).join('')}<p>${n.author?'Автор: '+e(n.author):''}</p>${n.source?`<p>Источник: ${n.source.url?`<a href="${e(n.source.url)}" rel="noopener noreferrer">${e(n.source.title||n.source.url)}</a>`:e(n.source.title)}</p>`:''}</div></div></section>${n.gallery.length?`<section class="stage-section stage-section--paper"><div class="container"><h2>Фотографии</h2><div class="news-gallery" data-gallery-grid>${n.gallery.map(g=>`<button type="button" data-media-type="image" data-gallery-category="all" data-full="${e(g.src)}" data-caption="${e(g.caption)}"><img src="${e(g.src)}" alt="${e(g.alt)}" loading="lazy"><span>${e(g.caption)} ${e(g.source)}</span></button>`).join('')}</div></div></section>`:''}<div class="container"><div class="stage-links news-back"><a class="stage-button" href="/news">Все новости</a></div></div></article>`;
-}
+import {e, eventDate, eventGallery, eventImage} from './events-render.service.js';
+
 export {e};
+
+export function newsArticle(news) {
+  const {title, cover, alt, coverCaption, coverCredit, text, author, source, gallery} = news;
+  const paragraphs = text.split(/\n\s*\n/).map(part => `<p>${e(part)}</p>`).join('');
+  const sourceLabel = source?.url
+    ? `<a href="${e(source.url)}" rel="noopener noreferrer">${e(source.title || source.url)}</a>`
+    : e(source?.title);
+  return `${cover ? eventImage(cover, alt || title, coverCaption, coverCredit) : ''}
+    <div class="events-prose">${paragraphs}</div>
+    ${author || sourceLabel ? `<div class="events-credits">
+      ${author ? `<p>Автор: ${e(author)}</p>` : ''}
+      ${sourceLabel ? `<p>Источник: ${sourceLabel}</p>` : ''}
+    </div>` : ''}
+    ${gallery.length ? eventGallery('Фотографии', gallery.map(photo =>
+      eventImage(photo.src, photo.alt || photo.caption, photo.caption, photo.source, true)
+    )) : ''}`;
+}
+
+export function newsMeta(news) {
+  return `<div class="events-meta">
+    <span class="events-label">${e(news.category)}</span>
+    <time datetime="${e(news.publishedAt)}">${e(eventDate(news.publishedAt))}</time>
+  </div>`;
+}

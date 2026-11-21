@@ -6,6 +6,7 @@
 @use './pages/about';
 @use './pages/training';
 @use './pages/team';
+@use './pages/events';
 
 // Временные стили внутренних страниц.
 .placeholder a:is(:hover, :focus-visible),
@@ -824,17 +825,10 @@
   filter: grayscale(1);
   transition: transform v.$duration-normal v.$ease-smooth;
 }
-.news-tile--results .news-tile__image img {
-  object-position: 90% 20%;
-  transform: scale(1.7);
-}
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .roster-card:hover > img,
   .news-tile:hover .news-tile__image img {
     transform: scale(1.04);
-  }
-  .news-tile--results:hover .news-tile__image img {
-    transform: scale(1.75);
   }
 }
 .news-tile:is(:hover, :focus-visible, :active) {

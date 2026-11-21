@@ -1,31 +1,65 @@
-import path from 'node:path';
-import {readFile} from 'node:fs/promises';
-import {e} from './news-render.service.js';
-import {personHref} from './people-render.service.js';
-const date=d=>d?new Date(d+'T12:00:00Z').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}):'Дата уточняется';
-const lines=s=>e(s).replace(/\n/g,'<br>');
-const empty=s=>'<div class="stage-empty"><p>'+s+'</p></div>';
-const section=(id,title,body,paper=false)=>`<section class="stage-section ${paper?'stage-section--paper':''}" id="${id}" aria-labelledby="${id}-title"><div class="container"><div class="stage-heading"><h2 id="${id}-title">${title}</h2></div>${body}</div></section>`;
-const links=rows=>`<div class="stage-links">${rows.map(r=>`<a class="stage-button stage-button--outline" href="${e(r.url)}" download>${e(r.title)} · PDF</a>`).join('')}</div>`;
-export async function renderCompetition(config,x,people,preview=false){
- let html=await readFile(path.join(config.ROOT,'public/competition.html'),'utf8');
- let body=`<section class="stage-hero page-hero" ><img class="stage-hero__image" src="/site/img/hall-archive.webp" alt=""><div class="container"><nav class="stage-crumbs" aria-label="Хлебные крошки"><a href="/">Главная</a><span>/</span><a href="/competitions">Соревнования</a></nav><span class="stage-hero__label">Соревнование клуба</span><h1>${e(x.title)}</h1><p>${e(x.lead)}</p><span class="stage-status">${x.eventStatus==='upcoming'?'Предстоящее':'Завершено'}</span></div></section>`;
- body+=section('overview','О соревновании',`<dl class="competition-facts"><div><dt>Дата</dt><dd>${date(x.startDate)} — ${date(x.endDate)}</dd></div><div><dt>Место</dt><dd>${e(x.location||'Место уточняется')}</dd></div><div><dt>Дисциплины</dt><dd>${e(x.disciplines.join(', '))||'Сведения ожидаются'}</dd></div><div><dt>Организатор</dt><dd>${e(x.organizer)||'Сведения ожидаются'}</dd></div></dl><p class="stage-notice">${lines(x.description)}</p>${x.image?`<figure class="competition-cover"><img src="${e(x.image)}" alt="${e(x.imageAlt||x.title)}"><figcaption>${e([x.imageCaption,x.imageCredit].filter(Boolean).join(' · '))}</figcaption></figure>`:''}`);
- body+=section('program','Программа соревнования',x.program.length?`<ul class="competition-program">${x.program.map(p=>`<li><strong>${e(p.time)}</strong><span>${e(p.title)}${p.description?'<br>'+lines(p.description):''}</span></li>`).join('')}</ul>`:empty('Программа пока не опубликована.'),true);
- body+=section('event-documents','Положение и документы',x.documents.length?links(x.documents):empty('Документы пока не опубликованы.'));
- body+=section('results','Результаты и протоколы',(x.resultsText?`<p class="stage-notice">${lines(x.resultsText)}</p>`:'')+(x.results.length?links(x.results):!x.resultsText?empty('Результаты пока не опубликованы.'):''),true);
- body+=section('photos','Фотоотчёт',x.photos.length?`<div class="competition-gallery" data-gallery-grid>${x.photos.map(p=>`<button type="button" data-media-type="image" data-full="${e(p.src)}" data-caption="${e([p.caption,p.credit].filter(Boolean).join(' · '))}" aria-label="Открыть фото: ${e(p.caption||p.alt||x.title)}"><img src="${e(p.src)}" alt="${e(p.alt||p.caption||x.title)}" loading="lazy"><span>${e(p.caption)}</span></button>`).join('')}</div><div class="profile-gallery__more-wrap stage-links"><button class="stage-button" type="button" data-gallery-more>Показать ещё</button></div>`:empty('Фотографии пока не опубликованы.'));
- const participants=people.filter(p=>x.participants.includes(p.id));
- if(participants.length)body+=section('people','Участники',`<div class="stage-links">${participants.map(p=>`<a class="stage-button stage-button--outline" href="${e(personHref(p))}">${e(p.name)}</a>`).join('')}</div>`);
- body+=section('back','Другие соревнования','<a class="stage-button" href="/competitions">Вернуться в каталог</a>',true);
- html=html.replace(/<div id="competition-content">[\s\S]*?<\/main>/,()=>'<div id="competition-content">'+body+'</div></main>').replace(/<title>[\s\S]*?<\/title>/,()=>'<title>'+e(x.title)+' — GLADIATOR BJJ</title>').replace(/<meta name="description" content="[^"]*">/,()=>'<meta name="description" content="'+e(x.lead)+'">').replace(/<script src="\/site\/scripts\/(competitions-data|competition)\.js"><\/script>/g,'');
- if(preview)html=html.replace('</head>','<script defer src="/site/scripts/admin/session-guard.js"></script></head>').replace(/\/media\/competitions\//g,'/api/admin/competitions/media/').replace('<body class="stage-page">',()=>`<body class="stage-page"><aside class="competition-preview-banner">Закрытый предпросмотр · <a href="/admin/competition-edit?id=${e(x.id)}">Вернуться к редактированию</a></aside>`);
- else html=html.replace('<meta name="robots" content="noindex,nofollow">','');
- return html;
+import {
+  competitionDates, e, eventGallery, eventImage, eventPath, renderEventDetail, replaceEventSlot
+} from './events-render.service.js';
+
+const statusLabel = entry => entry.eventStatus === 'upcoming' ? 'Предстоящее' : 'Завершено';
+
+function section(title, content) {
+  return `<section class="events-detail__section" aria-label="${title}"><h2>${title}</h2>${content}</section>`;
 }
-export function renderHomeCompetitions(html,rows){
- rows=rows.filter(x=>x.eventStatus==='upcoming').slice(0,12);
- const cards=rows.map(x=>`<article class="competition-card" data-competition-card><div class="competition-card__top"><div class="competition-card__date"><strong>${e(x.startDate.slice(8))}</strong><span>${e(new Date(x.startDate+'T12:00:00Z').toLocaleDateString('ru-RU',{month:'long',year:'numeric',timeZone:'UTC'}))}</span></div><div class="competition-card__info"><h3><a href="/competitions/${e(x.slug)}">${e(x.title)}</a></h3><p>${e(x.location)}</p></div></div><span class="competition-card__category">${e(x.disciplines.join(' · '))}</span></article>`).join('')||'<p class="competition-home-empty">Предстоящих соревнований пока нет. <a href="/competitions">Перейти в каталог</a></p>';
- if(rows[0]){const x=rows[0];html=html.replace(/(<p class="hero__event-name" id="hero-event-name">)[\s\S]*?(<\/p>)/,(_m,a,b)=>a+e(x.title)+b).replace('<span>Дата уточняется</span>',()=>'<span>'+date(x.startDate)+' — '+date(x.endDate)+'</span>').replace('<span>Республика Хакасия</span>',()=>'<span>'+e(x.location)+'</span>').replace('<a href="/competitions" class="hero__event-link">Подробнее о турнирах</a>',()=>'<a href="/competitions/'+e(x.slug)+'" class="hero__event-link">Подробнее о соревновании</a>').replace('До ближайших соревнований','Ближайшее соревнование').replace(/<div class="hero__timer" id="hero-countdown"[^>]*>(?:\s*<div class="hero__timer-item">[\s\S]*?<\/div>){4}\s*<\/div>/,()=>'<p class="hero__confirmed-date">'+date(x.startDate)+' — '+date(x.endDate)+'</p>');}
- return html.replace(/<p class="competitions-preview__disclaimer">[\s\S]*?<\/p>/,'').replace(/(<div class="competitions-preview__stage">)[\s\S]*?(<\/div>\s*<\/div>\s*<div class="competitions-preview__navigation">)/,(_m,a,b)=>a+cards+b).replace(/(<span data-competitions-counter[^>]*>)[^<]*(<\/span>)/,(_m,a,b)=>a+(rows.length?'01 / '+String(rows.length).padStart(2,'0'):'00 / 00')+b).replace(/(<button type="button" data-competitions-(?:prev|next)) /g,(_m,a)=>a+(rows.length<2?' disabled ':' '));
+
+function paragraphs(text) {
+  return text.split(/\n\s*\n/).map(part => `<p>${e(part)}</p>`).join('');
+}
+
+export async function renderCompetition(config, entry, people, preview = false) {
+  const fileUrl = src => preview ? src.replace('/media/competitions/', '/api/admin/competitions/media/') : src;
+  const facts = [
+    ['Дата', competitionDates(entry)],
+    ['Место', e(entry.location)],
+    ['Дисциплины', e(entry.disciplines.join(', '))],
+    ['Организатор', e(entry.organizer)]
+  ];
+  const participants = people.filter(person => entry.participants.includes(person.id));
+  const body = `<dl class="events-facts">
+    ${facts.filter(([, value]) => value).map(([name, value]) => `<div><dt>${name}</dt><dd>${value}</dd></div>`).join('')}
+  </dl>
+  ${entry.image ? eventImage(fileUrl(entry.image), entry.imageAlt || entry.title, entry.imageCaption, entry.imageCredit) : ''}
+  ${entry.description ? section('О соревновании', `<div class="events-prose">${paragraphs(entry.description)}</div>`) : ''}
+  ${entry.program.length ? section('Программа', `<ul class="events-program">${entry.program.map(item => `<li>
+    ${item.time ? `<span>${e(item.time)}</span>` : ''}
+    <div><strong>${e(item.title)}</strong>${item.description ? `<p>${e(item.description)}</p>` : ''}</div>
+  </li>`).join('')}</ul>`) : ''}
+  ${entry.documents.length ? section('Положение и документы', `<ul class="events-links">${entry.documents.map(doc =>
+    `<li><a href="${e(fileUrl(doc.url))}" download>${e(doc.title)} (PDF)</a></li>`
+  ).join('')}</ul>`) : ''}
+  ${entry.photos.length ? eventGallery('Фотоотчёт', entry.photos.map(photo =>
+    eventImage(fileUrl(photo.src), photo.alt || photo.caption, photo.caption, photo.credit, true)
+  )) : ''}
+  ${participants.length ? section('Участники', `<ul class="events-links">${participants.map(person =>
+    `<li><a href="/people/${e(encodeURIComponent(person.slug))}">${e(person.name)}</a></li>`
+  ).join('')}</ul>`) : ''}`;
+  return renderEventDetail(config, 'competitions', entry, {
+    meta: `<div class="events-meta"><span class="events-label">${statusLabel(entry)}</span></div>`,
+    lead: entry.lead,
+    body,
+    preview: preview ? `<aside class="events-preview"><div class="container">
+      Предпросмотр рабочей версии · <a href="/admin/competition-edit?id=${e(encodeURIComponent(entry.id))}">Вернуться в редактор</a>
+    </div></aside>` : ''
+  });
+}
+
+export function renderHomeCompetitions(html, rows) {
+  const entry = rows.find(item => item.eventStatus === 'upcoming');
+  if (!entry) return html;
+  const card = `<article class="competition-card${entry.image ? '' : ' competition-card--text'}">
+    ${entry.image ? `<div class="competition-card__image"><img src="${e(entry.image)}" alt="" loading="lazy"></div>` : ''}
+    <div class="competition-card__body">
+      <span class="home-tag">Предстоящее</span>
+      <h3>${e(entry.title)}</h3>
+      <p>${competitionDates(entry)}<br>${e(entry.location)}</p>
+      <a class="home-button" href="${e(eventPath('competitions', entry))}">Подробнее</a>
+    </div>
+  </article>`;
+  return replaceEventSlot(html, 'home-competitions', card);
 }

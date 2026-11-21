@@ -78,12 +78,14 @@
 
     function markCurrent() {
       const current = window.location;
+      const section = document.querySelector('.events-page[data-section]')?.dataset.section;
       header.querySelectorAll('.header__nav a, .mobile-menu__nav a').forEach((link) => {
         const url = new URL(link.href);
-        const active = url.pathname === current.pathname &&
-          (url.hash === current.hash || (!current.hash && url.hash === '#trainers'));
+        const parent = url.pathname === section;
+        const active = parent || (url.pathname === current.pathname &&
+          (url.hash === current.hash || (!current.hash && url.hash === '#trainers')));
         link.classList.toggle('is-current', active);
-        if (active) link.setAttribute('aria-current', url.hash ? 'location' : 'page');
+        if (active) link.setAttribute('aria-current', url.hash || parent ? 'location' : 'page');
         else link.removeAttribute('aria-current');
       });
       if (events) events.classList.toggle('is-current', Boolean(events.querySelector('.is-current')));

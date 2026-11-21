@@ -1,29 +1,96 @@
-// Initial HTML and no-JavaScript view of the same public snapshots used by filters.
-import {e} from './news-render.service.js';
-const date=s=>s?new Date(s+'T12:00:00Z').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}):'Дата уточняется';
-const newsCard=n=>`<article class="publication-card"><a class="publication-card__link" href="/news/${e(encodeURIComponent(n.slug))}"><div class="publication-card__visual">${n.cover?`<img src="${e(n.cover)}" alt="${e(n.alt||n.title)}" loading="lazy" width="1000" height="650">`:''}</div><div class="publication-card__body"><div class="publication-meta"><span>${e(n.category)}</span><time datetime="${e(n.publishedAt)}">${e(date(n.publishedAt))}</time></div><h3>${e(n.title)}</h3><p>${e(n.lead)}</p><span class="publication-card__read">Читать материал</span></div></a></article>`;
-export function renderNewsCatalog(html,rows,query={}){
- const selected=rows.filter(n=>(!query.year||query.year==='all'||n.publishedAt.startsWith(String(query.year)))&&(!query.category||query.category==='all'||n.category===query.category));
- const featured=!query.year&&!query.category&&selected.length>0,rest=featured?selected.slice(1):selected;
- html=html.replace(/(<section\b[^>]*id="featured-section"[^>]*)(>)/,(_m,a,b)=>(featured?a.replace(/\s+hidden\b/,''):a)+b)
-  .replace('<div id="news-featured"></div>',()=>'<div id="news-featured">'+(featured?newsCard(selected[0]):'')+'</div>')
-  .replace('<div class="news-grid" id="news-grid"></div>',()=>'<div class="news-grid" id="news-grid">'+rest.map(newsCard).join('')+'</div>')
-  .replace('<p id="news-count" role="status"></p>',()=>`<p id="news-count" role="status">Опубликовано: ${selected.length}</p>`)
-  .replace(/(<div\b[^>]*id="news-empty") hidden/,(_m,a)=>selected.length?a+' hidden':a)
-  .replace('Для просмотра ленты и фильтров включите JavaScript.','Лента доступна без JavaScript. Для фильтрации включите JavaScript.');
- return html;
+import {competitionDates, e, eventDate, eventPath, replaceEventSlot} from './events-render.service.js';
+import {newsMeta} from './news-render.service.js';
+
+const competitionGroups = [
+  ['upcoming', 'Предстоящие'],
+  ['completed', 'Завершённые']
+];
+
+function eventCard(section, entry, meta, summary, heading = 'h3') {
+  const image = section === 'news' ? entry.cover : entry.image;
+  return `<a class="events-card" href="${e(eventPath(section, entry))}">
+    ${image ? `<img class="events-card__image" src="${e(image)}" alt="" loading="lazy">` : ''}
+    <div class="events-card__body">
+      ${meta}
+      <${heading}>${e(entry.title)}</${heading}>
+      ${summary}
+      <span class="events-card__action">${section === 'news' ? 'Читать новость' : 'О соревновании'}</span>
+    </div>
+  </a>`;
 }
-export function renderHomeNews(html,rows){
- const cards=rows.slice(0,3).map(n=>`<article class="news-card"><a class="news-card__image" href="/news/${e(encodeURIComponent(n.slug))}" aria-label="${e(n.title)}">${n.cover?`<img src="${e(n.cover)}" alt="${e(n.alt||n.title)}" width="116" height="82" loading="lazy">`:''}</a><div class="news-card__content"><time class="news-card__date" datetime="${e(n.publishedAt)}">${e(date(n.publishedAt))}</time><h3 class="news-card__title">${e(n.title)}</h3><a class="news-card__link" href="/news/${e(encodeURIComponent(n.slug))}">Читать материал</a></div></article>`).join('')||'<p>Публикаций пока нет.</p>';
- return html.replace(/<div class="home-feed__news-list">[\s\S]*?<\/div>/,()=>'<div class="home-feed__news-list">'+cards+'</div>');
+
+function catalogFilter(name, label, options, selected) {
+  return `<label>${label}<select name="${name}">
+    ${options.map(([value, title]) =>
+      `<option value="${e(value)}"${value === selected ? ' selected' : ''}>${e(title)}</option>`
+    ).join('')}
+  </select></label>`;
 }
-export function renderCompetitionCatalog(html,rows,query={}){
- const selected=rows.filter(x=>(!query.year||query.year==='all'||x.startDate.startsWith(String(query.year)))&&(!query.status||query.status==='all'||x.eventStatus===query.status));
- const labels={upcoming:'Предстоящие',completed:'Завершённые'};
- const groups=Object.entries(labels).map(([kind,label])=>{
-  const subset=selected.filter(x=>x.eventStatus===kind).sort((a,b)=>kind==='upcoming'?a.startDate.localeCompare(b.startDate):b.startDate.localeCompare(a.startDate));
-  if(!subset.length)return '';
-  return `<div class="events-group"><h3>${label}</h3><div class="stage-grid">${subset.map(x=>`<a class="event-card" href="/competitions/${e(encodeURIComponent(x.slug))}">${x.image?`<img class="event-card__image" src="${e(x.image)}" alt="${e(x.imageAlt||x.title)}" loading="lazy">`:''}<div class="event-card__body"><span class="event-card__demo">Соревнование клуба</span><h4>${e(x.title)}</h4><p>${e(date(x.startDate))} — ${e(date(x.endDate))}</p><p>${e(x.location)}</p><span class="stage-status">${kind==='upcoming'?'Предстоящее':'Завершено'}</span><span class="event-card__open">Подробнее о соревновании</span></div></a>`).join('')}</div></div>`;
- }).join('');
- return html.replace('<div id="event-groups"></div>',()=>'<div id="event-groups">'+groups+'</div>').replace('<p id="event-count" role="status"></p>',()=>`<p id="event-count" role="status">Найдено: ${selected.length}</p>`).replace(/(<div\b[^>]*id="event-empty") hidden/,(_m,a)=>selected.length?a+' hidden':a).replace('Для просмотра каталога включите JavaScript.','Каталог доступен без JavaScript. Для фильтрации включите JavaScript.');
+
+function catalogContent(html, section, rows, query, {field, label, options, dateKey, render}) {
+  const year = typeof query.year === 'string' && /^\d{4}$/.test(query.year) ? query.year : '';
+  const years = [...new Set([year, ...rows.map(row => row[dateKey].slice(0, 4))])]
+    .filter(Boolean).sort().reverse().map(y => [y, y]);
+  const value = options.some(([key]) => key && key === query[field]) ? query[field] : '';
+  const selected = rows.filter(row => (!year || row[dateKey].startsWith(year)) && (!value || row[field] === value));
+  const heading = section === 'news' ? 'Публикации' : 'Календарь соревнований';
+  const filters = rows.length ? `<form class="events-filters" action="/${section}" method="get">
+    ${catalogFilter(field === 'eventStatus' ? 'status' : field, label, options, value)}
+    ${catalogFilter('year', 'Год', [['', 'Все годы'], ...years], year)}
+    <button class="events-button" type="submit">Показать</button>
+    ${year || value ? `<a class="events-reset" href="/${section}">Сбросить</a>` : ''}
+  </form>` : '';
+  const body = `<section class="events-list container" aria-labelledby="events-list-title">
+    <h2 id="events-list-title">${heading}</h2>
+    ${filters}
+    ${selected.length ? render(selected) : `<p class="events-empty">${rows.length
+      ? 'По этим фильтрам ничего не найдено.'
+      : section === 'news' ? 'Новостей пока нет.' : 'Соревнования пока не опубликованы.'}</p>`}
+  </section>`;
+  return replaceEventSlot(html, 'events-list', body);
+}
+
+export function renderNewsCatalog(html, rows, query = {}) {
+  const categories = [...new Set(rows.map(news => news.category))];
+  if (typeof query.category === 'string' && ['Клуб', 'История', 'Соревнования'].includes(query.category) &&
+      !categories.includes(query.category)) categories.push(query.category);
+  return catalogContent(html, 'news', rows, query, {
+    field: 'category',
+    label: 'Категория',
+    options: [['', 'Все категории'], ...categories.map(category => [category, category])],
+    dateKey: 'publishedAt',
+    render: news => `<div class="events-grid">${news.map(entry => eventCard(
+      'news', entry, newsMeta(entry), `<p class="events-card__summary">${e(entry.lead)}</p>`
+    )).join('')}</div>`
+  });
+}
+
+export function renderCompetitionCatalog(html, rows, query = {}) {
+  return catalogContent(html, 'competitions', rows, {...query, eventStatus: query.status}, {
+    field: 'eventStatus',
+    label: 'Состояние',
+    options: [['', 'Все соревнования'], ...competitionGroups],
+    dateKey: 'startDate',
+    render: entries => competitionGroups.map(([status, title]) => {
+      const group = entries.filter(entry => entry.eventStatus === status);
+      if (!group.length) return '';
+      if (status === 'completed') group.reverse();
+      return `<section class="events-group"><h3>${title}</h3>
+        <div class="events-grid">${group.map(entry => eventCard('competitions', entry,
+          `<div class="events-meta">${competitionDates(entry)}</div>`,
+          `<p class="events-card__location">${e(entry.location)}</p>
+           ${entry.lead ? `<p class="events-card__summary">${e(entry.lead)}</p>` : ''}`, 'h4'
+        )).join('')}</div></section>`;
+    }).join('')
+  });
+}
+
+export function renderHomeNews(html, rows) {
+  if (!rows.length) return html;
+  const cards = rows.slice(0, 2).map(news => `<a class="news-tile" href="${e(eventPath('news', news))}">
+    ${news.cover ? `<div class="news-tile__image"><img src="${e(news.cover)}" alt="" loading="lazy"></div>` : ''}
+    <span class="news-tile__category">${e(news.category)} · <time datetime="${e(news.publishedAt)}">${e(eventDate(news.publishedAt))}</time></span>
+    <h3>${e(news.title)}</h3><p>${e(news.lead)}</p>
+  </a>`).join('');
+  return replaceEventSlot(html, 'home-news', `<div class="home-news__grid">${cards}</div>`);
 }
