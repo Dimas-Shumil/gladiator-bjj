@@ -1,0 +1,130 @@
+@use '../base/variables' as v;
+
+.club-training__hero {
+  position: relative;
+  isolation: isolate;
+  border-bottom: 1px solid v.$color-border;
+}
+
+.club-training__visual {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 24%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, v.$color-background, transparent 55%);
+    content: '';
+  }
+}
+
+.club-training__hero-inner {
+  display: flex;
+  align-items: center;
+  min-height: clamp(365px, 36vw, 590px);
+  padding-block: 40px;
+}
+
+.club-training__intro {
+  h1 {
+    margin-bottom: 14px;
+    font-size: clamp(40px, 6.5vw, 104px);
+    font-style: italic;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  p {
+    max-width: 29ch;
+    margin-bottom: 24px;
+    color: v.$color-text;
+    font-size: clamp(17px, 1.7vw, 24px);
+  }
+}
+
+.club-training__practice,
+.club-training__contact {
+  padding-block: clamp(32px, 5vw, 72px);
+}
+
+.club-training h2 {
+  margin-bottom: 16px;
+  font-size: clamp(29px, 3.7vw, 55px);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.club-training__topics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px clamp(16px, 2.5vw, 40px);
+
+  > div {
+    padding-block: 14px 0;
+    border-top: 2px solid v.$color-red;
+  }
+
+  h3 {
+    margin-bottom: 8px;
+    font-size: clamp(23px, 2.2vw, 33px);
+  }
+
+  p {
+    max-width: 37ch;
+    margin-bottom: 0;
+    color: v.$color-muted-dark;
+  }
+}
+
+.club-training__contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+
+  p {
+    max-width: 62ch;
+    margin-bottom: 0;
+    color: v.$color-muted;
+  }
+}
+
+.club-training .home-button {
+  font-size: clamp(15px, 1.3vw, 19px);
+
+  &:focus-visible {
+    outline-color: v.$color-white;
+  }
+}
+
+@media (max-width: v.$breakpoint-mobile) {
+  .club-training__visual {
+    position: relative;
+    inset: auto;
+    height: clamp(175px, 52vw, 335px);
+
+    &::after {
+      background: linear-gradient(0deg, v.$color-background, transparent 45%);
+    }
+  }
+
+  .club-training__hero-inner {
+    min-height: 0;
+    padding-block: 0 32px;
+  }
+
+  .club-training__topics {
+    grid-template-columns: 1fr;
+  }
+}
