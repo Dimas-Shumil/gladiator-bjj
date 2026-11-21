@@ -3,6 +3,7 @@
 
 @use './components/header';
 @use './components/footer';
+@use './pages/about';
 
 // Временные стили внутренних страниц.
 .placeholder a:is(:hover, :focus-visible),
