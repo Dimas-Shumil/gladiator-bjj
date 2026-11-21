@@ -5,6 +5,7 @@
 @use './components/footer';
 @use './pages/about';
 @use './pages/training';
+@use './pages/team';
 
 // Временные стили внутренних страниц.
 .placeholder a:is(:hover, :focus-visible),

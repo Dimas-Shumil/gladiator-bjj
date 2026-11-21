@@ -57,3 +57,43 @@ export async function renderPeopleCatalog(config,name,people){
 export function renderHomePeople(html,people){const rows=people.filter(x=>x.isAthlete&&x.showOnHome),cards=rows.map(x=>`<article class="athlete-card"><a class="athlete-card__photo" href="${e(personHref(x,'athlete'))}" aria-label="${e(x.name)}">${img(x.portrait,x.portraitAlt||x.name)}</a><div class="athlete-card__body"><h3 class="athlete-card__name">${e(x.name)}</h3><p class="athlete-card__meta">${e(x.athleteTitle)}</p></div></article>`).join('')||empty;
  return html.replace(/(<div class="home-feed__athletes-track"[^>]*>)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/section>)/,(_m,start,end)=>start+cards+end).replace(/(<span class="home-feed__counter" data-athletes-counter[^>]*>)[^<]*(<\/span>)/,(_m,a,b)=>a+(rows.length?'01 / '+String(rows.length).padStart(2,'0'):'00 / 00')+b);
 }
+
+export const teamCardId = person => 'team-' + person.slug;
+
+function teamCards(people, isCoach) {
+  const cards = people.map((person, index) => {
+    const lead = isCoach && index === 0 ? ' club-team__card--lead' : '';
+    const portrait = isCoach ? person.coachPortrait || person.portrait : person.portrait;
+    const title = isCoach
+      ? person.coachTitle || person.specialization
+      : person.athleteTitle || person.discipline;
+    const summary = person.summary && person.summary !== title
+      ? `<p>${e(person.summary)}</p>`
+      : '';
+
+    return `<li class="club-team__card${lead}" id="${e(teamCardId(person))}">
+      ${portrait ? `<figure class="club-team__portrait">${img(portrait, person.portraitAlt, person.photoCredit)}</figure>` : ''}
+      <div class="club-team__body">
+        <h3>${e(person.name)}</h3>
+        ${title ? `<p>${e(title)}</p>` : ''}
+        ${summary}
+      </div>
+    </li>`;
+  });
+
+  return `<ul class="club-team__cards" role="list">${cards.join('\n')}</ul>`;
+}
+
+export async function renderTeam(config, people) {
+  let html = await readFile(path.join(config.ROOT, 'public/team.html'), 'utf8');
+  const trainers = people.filter(person => person.isCoach);
+  const athletes = people.filter(person => person.isAthlete && !person.isCoach);
+
+  if (trainers.length) {
+    html = html.replace(/<!-- team:trainers:start -->[\s\S]*?<!-- team:trainers:end -->/, () => teamCards(trainers, true));
+  }
+  if (athletes.length) {
+    html = html.replace(/<!-- team:athletes:start -->[\s\S]*?<!-- team:athletes:end -->/, () => teamCards(athletes, false));
+  }
+  return html;
+}

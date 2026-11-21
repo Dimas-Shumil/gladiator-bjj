@@ -1,0 +1,146 @@
+@use '../base/variables' as v;
+
+.club-team__intro {
+  padding-block: clamp(32px, 5vw, 76px);
+  border-bottom: 1px solid v.$color-border;
+  background: linear-gradient(110deg, v.$color-background 42%, #261014);
+
+  h1 {
+    margin-bottom: 12px;
+    font-size: clamp(40px, 7.2vw, 104px);
+    font-style: italic;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  p {
+    max-width: 44ch;
+    margin-bottom: 14px;
+    color: v.$color-muted;
+    font-size: clamp(17px, 1.8vw, 24px);
+  }
+}
+
+.club-team__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 22px;
+}
+
+.club-team__nav a {
+  min-height: 44px;
+}
+
+.club-team__sections {
+  padding-block: clamp(32px, 5vw, 72px);
+}
+
+.club-team__section + .club-team__section {
+  margin-top: clamp(32px, 5vw, 72px);
+}
+
+.club-team__section h2 {
+  margin-bottom: 16px;
+  font-size: clamp(29px, 3.7vw, 55px);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.club-team__empty {
+  margin: 0;
+  padding: 16px 20px;
+  border-left: 2px solid v.$color-red;
+  background: v.$color-surface;
+  color: v.$color-muted;
+}
+
+.club-team__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.club-team__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  scroll-margin-top: 110px;
+  border: 1px solid v.$color-border;
+  background: v.$color-surface;
+}
+
+.club-team__card--lead {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: center;
+  border-top: 2px solid v.$color-red;
+}
+
+.club-team__portrait {
+  margin: 0;
+  background: v.$color-background;
+
+  img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    max-height: 440px;
+    object-fit: cover;
+    object-position: center 30%;
+  }
+
+  figcaption {
+    padding: 6px 12px;
+    color: v.$color-muted;
+    font-size: 13px;
+  }
+}
+
+.club-team__body {
+  padding: clamp(16px, 2.4vw, 36px);
+
+  h3 {
+    margin-bottom: 6px;
+    font-size: clamp(23px, 2.6vw, 38px);
+  }
+
+  p {
+    max-width: 65ch;
+    margin-bottom: 0;
+    color: v.$color-muted;
+  }
+
+  p + p {
+    margin-top: 10px;
+  }
+}
+
+.club-team__card--lead .club-team__body:only-child {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: v.$breakpoint-mobile) {
+  .club-team__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .club-team__card {
+    scroll-margin-top: 90px;
+  }
+
+  .club-team__card--lead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .club-team__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
