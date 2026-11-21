@@ -5,7 +5,8 @@
 @use './components/footer';
 
 // Временные стили внутренних страниц.
-a:hover {
+.placeholder a:is(:hover, :focus-visible),
+.placeholder a:active {
   color: #f44;
 }
 .placeholder h1 {
@@ -164,8 +165,9 @@ a:hover {
   text-align: center;
   text-transform: uppercase;
   transition:
-    border-color v.$duration-fast,
-    background-color v.$duration-fast;
+    border-color v.$duration-normal v.$ease-smooth,
+    background-color v.$duration-normal v.$ease-smooth,
+    transform v.$duration-normal v.$ease-smooth;
 }
 
 .hero__action--primary {
@@ -178,12 +180,8 @@ a:hover {
   inset: 0;
   background: v.$color-red;
   clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-  transition: background-color v.$duration-fast;
+  transition: background-color v.$duration-normal v.$ease-smooth;
   content: '';
-}
-
-.hero__action--primary:hover::before {
-  background: v.$color-red-hover;
 }
 
 .hero__action-icon {
@@ -198,13 +196,27 @@ a:hover {
   background: rgba(v.$color-black, 0.22);
 }
 
-.hero__action--outline:hover {
+.hero__action--outline:is(:hover, :focus-visible, :active) {
   border-color: v.$color-red;
-  background: rgba(v.$color-red, 0.2);
+  background-color: v.$color-card;
 }
 
-.hero__action:hover {
-  color: v.$color-white;
+.hero__action--primary:is(:hover, :focus-visible, :active)::before,
+.home-button:is(:hover, :focus-visible, :active)::before {
+  background-color: v.$color-red-hover;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero__action:hover,
+  .home-button:hover {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero__action:active,
+  .home-button:active {
+    transform: scale(0.98);
+  }
 }
 
 .hero__action:focus-visible {
@@ -460,7 +472,6 @@ a:hover {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
-  transition: transform 0.2s ease;
 }
 .home-button {
   position: relative;
@@ -468,6 +479,7 @@ a:hover {
   min-height: 44px;
   padding: 10px 28px;
   color: v.$color-white;
+  transition: transform v.$duration-normal v.$ease-smooth;
 }
 .home-button::before {
   position: absolute;
@@ -476,20 +488,15 @@ a:hover {
   background: v.$color-red;
   transform: skewX(-16deg);
   content: '';
-  transition: background-color 0.2s;
-}
-.home-button:hover {
-  color: v.$color-white;
-}
-.home-button:hover::before {
-  background: v.$color-red-hover;
-}
-.home-button:hover svg,
-.home-link:hover svg {
-  transform: translateX(4px);
+  transition: background-color v.$duration-normal v.$ease-smooth;
 }
 .home-link {
   min-height: 44px;
+  transition: color v.$duration-fast v.$ease-smooth;
+
+  &:is(:hover, :focus-visible, :active) {
+    color: #f04b5b;
+  }
 }
 .home-rule {
   display: block;
@@ -574,7 +581,11 @@ a:hover {
   font-size: clamp(30px, 3.6vw, 62px);
 }
 .home-roster__intro .home-link {
-  color: v.$color-red;
+  color: #f04b5b;
+
+  &:is(:hover, :focus-visible, :active) {
+    color: v.$color-white;
+  }
 }
 .home-roster__cards {
   display: grid;
@@ -601,7 +612,7 @@ a:hover {
   height: 100%;
   object-fit: cover;
   filter: grayscale(1);
-  transition: transform 0.45s ease;
+  transition: transform v.$duration-normal v.$ease-smooth;
 }
 .roster-card::after {
   position: absolute;
@@ -610,11 +621,10 @@ a:hover {
   background: linear-gradient(0deg, #000 0%, transparent 75%);
   content: '';
 }
-.roster-card:hover > img {
-  transform: scale(1.04);
-}
-.roster-card:hover {
-  color: #fff;
+.roster-card:focus-visible .roster-card__caption {
+  // Контур всей карточки обрезается скошенным clip-path.
+  outline: 2px solid v.$color-white;
+  outline-offset: 4px;
 }
 .roster-card--gallery > img {
   object-position: 65% center;
@@ -675,6 +685,10 @@ a:hover {
 }
 .home-training__intro .home-link {
   color: v.$color-red;
+
+  &:is(:hover, :focus-visible, :active) {
+    color: v.$color-red-hover;
+  }
 }
 .home-training__items {
   display: grid;
@@ -684,6 +698,9 @@ a:hover {
   position: relative;
   padding: 16px 24px;
   border-left: 1px solid rgba(0, 0, 0, 0.2);
+  transition:
+    background-color v.$duration-fast v.$ease-smooth,
+    border-color v.$duration-fast v.$ease-smooth;
 }
 .training-card__number {
   font: italic 700 clamp(34px, 4vw, 64px)/1 v.$font-display;
@@ -703,12 +720,9 @@ a:hover {
   bottom: 12px;
   color: v.$color-red;
 }
-.training-card:hover {
-  color: inherit;
-  background: rgba(255, 255, 255, 0.25);
-}
-.training-card:hover > svg {
-  transform: translateX(4px);
+.training-card:is(:hover, :focus-visible, :active) {
+  background-color: rgba(v.$color-white, 0.25);
+  border-color: v.$color-red;
 }
 .home-events {
   display: grid;
@@ -792,6 +806,7 @@ a:hover {
   min-width: 0;
   border: 1px solid #333;
   padding-bottom: 16px;
+  transition: border-color v.$duration-fast v.$ease-smooth;
 }
 .news-tile__image {
   aspect-ratio: 1.9;
@@ -804,21 +819,23 @@ a:hover {
   object-fit: cover;
   object-position: 72% center;
   filter: grayscale(1);
-  transition: transform 0.4s;
+  transition: transform v.$duration-normal v.$ease-smooth;
 }
 .news-tile--results .news-tile__image img {
   object-position: 90% 20%;
   transform: scale(1.7);
 }
-.news-tile:hover .news-tile__image img {
-  transform: scale(1.04);
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .roster-card:hover > img,
+  .news-tile:hover .news-tile__image img {
+    transform: scale(1.04);
+  }
+  .news-tile--results:hover .news-tile__image img {
+    transform: scale(1.75);
+  }
 }
-.news-tile--results:hover .news-tile__image img {
-  transform: scale(1.75);
-}
-.news-tile:hover {
-  color: #fff;
-  border-color: #666;
+.news-tile:is(:hover, :focus-visible, :active) {
+  border-color: #777;
 }
 .news-tile__category {
   margin: 12px 12px 8px;
@@ -1227,12 +1244,11 @@ a:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-button,
   .home-button::before,
-  .home-button svg,
-  .home-link svg,
-  .training-card > svg,
-  .roster-card > img,
-  .news-tile__image img {
+  .home-link,
+  .training-card,
+  .news-tile {
     transition: none;
   }
 }

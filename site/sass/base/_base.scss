@@ -64,6 +64,12 @@ button {
   cursor: pointer;
 }
 
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
 img,
 svg,
 picture,

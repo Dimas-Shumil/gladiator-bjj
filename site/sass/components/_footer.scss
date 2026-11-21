@@ -31,10 +31,6 @@
   color: v.$color-red;
 }
 
-.footer__brand:hover {
-  color: v.$color-text;
-}
-
 .footer__description {
   max-width: 280px;
   margin: 12px 0 0;
@@ -64,12 +60,12 @@
   overflow-wrap: anywhere;
   color: v.$color-muted;
   font-size: 14px;
-  transition: color v.$duration-fast ease;
+  transition: color v.$duration-fast v.$ease-smooth;
 }
 
-.footer__nav a:hover,
-.footer__bottom a:hover {
-  color: v.$color-red;
+.footer__nav a:is(:hover, :focus-visible, :active),
+.footer__bottom a:is(:hover, :focus-visible, :active) {
+  color: #f04b5b;
 }
 
 .footer__bottom {

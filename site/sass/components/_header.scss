@@ -10,6 +10,10 @@ $header-top-mobile: 12px;
   padding-top: calc($header-bar-height + $header-top + 12px);
 }
 
+main section[id] {
+  scroll-margin-top: calc($header-bar-height + $header-top + 12px);
+}
+
 // На главной фон Hero продолжается за стеклянным хедером.
 #site-header ~ main:has(> .hero) {
   padding-top: 0;
@@ -121,9 +125,9 @@ $header-top-mobile: 12px;
   transition: color v.$duration-fast ease;
 }
 
-.header__nav > a:hover:not(.header__signup),
-.header__nav a.is-current:not(.header__signup),
-.header__events > summary:hover,
+.header__nav > a:is(:hover, :focus-visible):not(.header__signup),
+.header__nav > a.is-current,
+.header__events > summary:is(:hover, :focus-visible),
 .header__events.is-current > summary,
 .header__events[open] > summary {
   color: v.$color-white;
@@ -173,15 +177,42 @@ $header-top-mobile: 12px;
   border: 0;
   background: transparent;
   color: v.$color-text;
-  transition: color v.$duration-fast ease;
+  transition:
+    background-color v.$duration-fast v.$ease-smooth,
+    transform v.$duration-fast v.$ease-smooth;
 }
 .header__search svg {
   width: 20px;
   height: 20px;
 }
-.header__search:hover,
-.header__burger:hover {
-  color: v.$color-red;
+.header__search[aria-expanded="true"],
+.header__burger[aria-expanded="true"] {
+  background-color: v.$color-card;
+}
+
+@media (hover: hover) {
+  .header__search:hover,
+  .header__burger:hover,
+  .site-search__close:hover {
+    background-color: v.$color-border;
+  }
+}
+
+.header__search:focus-visible,
+.header__burger:focus-visible,
+.site-search__close:focus-visible,
+.site-search__input:focus-visible,
+.site-search__results a:focus-visible {
+  outline: 2px solid #f04b5b;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .header__search:active,
+  .header__burger:active,
+  .site-search__close:active {
+    transform: scale(0.98);
+  }
 }
 
 .header__signup {
@@ -200,21 +231,38 @@ $header-top-mobile: 12px;
   line-height: 1.2;
   text-transform: uppercase;
   white-space: nowrap;
+  transition: transform v.$duration-normal v.$ease-smooth;
 }
 .header__signup::before {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: linear-gradient(110deg, v.$color-red, v.$color-red-hover);
+  background-color: v.$color-red;
   clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
   content: '';
-  transition: filter v.$duration-fast ease;
+  transition: background-color v.$duration-normal v.$ease-smooth;
 }
-.header__signup:hover {
-  color: v.$color-white;
+.header__signup:focus-visible {
+  outline-color: v.$color-white;
 }
-.header__signup:hover::before {
-  filter: brightness(1.16);
+.header__signup:is(:focus-visible, :active)::before {
+  background-color: v.$color-red-hover;
+}
+
+@media (hover: hover) {
+  .header__signup:hover::before {
+    background-color: v.$color-red-hover;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .header__signup:hover {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .header__signup:active {
+    transform: scale(0.98);
+  }
 }
 .header__signup-icon {
   width: 17px;
@@ -244,7 +292,7 @@ $header-top-mobile: 12px;
     color v.$duration-fast ease;
 }
 
-.header__dropdown a:hover {
+.header__dropdown a:is(:hover, :focus-visible, .is-current) {
   background: v.$color-card;
   color: v.$color-red;
 }
@@ -308,12 +356,11 @@ $header-top-mobile: 12px;
   height: 2px;
   background: v.$color-red;
   transform: scaleX(0);
-  transition: transform 0.35s ease;
+  transition: transform 0.35s v.$ease-smooth;
   content: '';
 }
-.header__nav > a:hover::after,
-.header__nav > a.is-current::after,
-.header__events > summary:hover::after,
+.header__nav > a:is(:hover, :focus-visible, .is-current):not(.header__signup)::after,
+.header__events > summary:is(:hover, :focus-visible)::after,
 .header__events.is-current > summary::after,
 .header__events[open] > summary::after {
   transform: scaleX(1);
@@ -359,6 +406,9 @@ $header-top-mobile: 12px;
   color: v.$color-text;
   font-size: 26px;
   line-height: 1;
+  transition:
+    background-color v.$duration-fast v.$ease-smooth,
+    transform v.$duration-fast v.$ease-smooth;
 }
 
 .site-search__label {
@@ -390,14 +440,18 @@ $header-top-mobile: 12px;
   padding: 10px 0;
   border-bottom: 1px solid v.$color-border;
   font-size: 15px;
+  transition:
+    background-color v.$duration-fast v.$ease-smooth,
+    border-color v.$duration-fast v.$ease-smooth;
 }
 
 .site-search__results a[hidden] {
   display: none;
 }
 
-.site-search__results a:hover {
-  color: v.$color-red;
+.site-search__results a:is(:hover, :focus-visible, :active) {
+  background-color: v.$color-card;
+  border-color: v.$color-red;
 }
 
 .mobile-menu {
@@ -460,10 +514,10 @@ $header-top-mobile: 12px;
     v.$font-display;
   text-transform: uppercase;
   text-decoration: none;
+  transition: color v.$duration-fast v.$ease-smooth;
 }
-.mobile-menu__nav a:hover,
-.mobile-menu__nav a.is-current {
-  color: v.$color-red;
+.mobile-menu__nav a:is(:hover, :focus-visible, :active, .is-current) {
+  color: #f04b5b;
 }
 .mobile-menu__bottom {
   margin-top: auto;
@@ -518,6 +572,9 @@ body.menu-open {
 @media (max-width: 1180px) {
   #site-header ~ main {
     padding-top: calc($header-bar-height-mobile + $header-top-mobile + 10px);
+  }
+  main section[id] {
+    scroll-margin-top: calc($header-bar-height-mobile + $header-top-mobile + 10px);
   }
   #site-header ~ main:has(> .hero) {
     padding-top: 0;
@@ -635,6 +692,8 @@ body.menu-open {
 @media (prefers-reduced-motion: reduce) {
   .header,
   .header *,
+  .header *::before,
+  .header *::after,
   .site-search * {
     transition: none;
   }

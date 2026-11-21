@@ -162,7 +162,6 @@
     dialog.addEventListener('close', () => {
       document.body.classList.remove('menu-open');
       trigger.setAttribute('aria-expanded', 'false');
-      trigger.focus();
     });
   }
 
@@ -182,8 +181,50 @@
     });
   }
 
+  function initAnchorScroll() {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    document.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0 ||
+          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const link = event.target.closest('a[href]');
+      if (!link || (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+
+      const url = new URL(link.href);
+      const current = window.location;
+      if (!url.hash || url.origin !== current.origin ||
+          url.pathname !== current.pathname || url.search !== current.search) return;
+
+      let id;
+      try {
+        id = decodeURIComponent(url.hash.slice(1));
+      } catch {
+        return;
+      }
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      event.preventDefault();
+      if (url.hash !== current.hash) {
+        const oldURL = current.href;
+        history.pushState(null, '', url);
+        // pushState не вызывает hashchange, на который подписана навигация.
+        window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: url.href }));
+      }
+
+      if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) {
+        target.setAttribute('tabindex', '-1');
+        target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
+      }
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+    });
+  }
+
   function init() {
     resolvePreviewLinks();
+    initAnchorScroll();
     if (document.querySelector('.header')) initHeader();
     else mount('site-header', '/components/header.html').then(initHeader);
     if (!document.querySelector('footer.footer')) mount('site-footer', '/components/footer.html');
