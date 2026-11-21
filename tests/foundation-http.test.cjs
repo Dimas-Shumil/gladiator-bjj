@@ -7,6 +7,13 @@ test('Fresh database, owner login, protected route, session revocation',async t=
  const password=randomBytes(24).toString('hex');const {hashPassword}=await import('../services/password.service.js');await db.admin.create({data:{name:'Test owner',login:'owner',role:'OWNER',passwordHash:await hashPassword(password)}});
  const {createApp}=await import('../lib/app.js');const config={ROOT:root,production:false,origin:'http://127.0.0.1',sessionHours:4,sessionIdleMinutes:2};server=await new Promise(r=>{const s=createApp(db,config).listen(0,'127.0.0.1',()=>r(s));});const base='http://127.0.0.1:'+server.address().port;config.origin=base;config.origins=[base];
  assert.equal((await fetch(base+'/')).status,200);assert.equal((await fetch(base+'/health/ready')).status,200);assert.equal((await fetch(base+'/admin',{redirect:'manual'})).status,303);assert.equal((await fetch(base+'/api/admin/dashboard')).status,401);
- const login=await fetch(base+'/api/admin/auth/login',{method:'POST',headers:{origin:base,'content-type':'application/json'},body:JSON.stringify({login:'owner',password})});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0],{csrfToken}=await login.json();assert.equal((await fetch(base+'/api/admin/dashboard',{headers:{cookie}})).status,200);
+ const login=await fetch(base+'/api/admin/auth/login',{method:'POST',headers:{origin:base,'content-type':'application/json'},body:JSON.stringify({login:'owner',password})});assert.equal(login.status,200);
+ const {securityConfig}=await import('../config/security.js');
+ const sessionCookiePrefix=securityConfig(config).cookieName+'=';
+ const cookie=login.headers.getSetCookie().map(header=>header.split(';',1)[0])
+  .find(value=>value.startsWith(sessionCookiePrefix)&&value.length>sessionCookiePrefix.length);
+ assert.ok(cookie,'Login must issue a non-empty session cookie');
+ const {csrfToken}=await login.json();
+ assert.equal((await fetch(base+'/api/admin/dashboard',{headers:{cookie}})).status,200);
  assert.equal((await fetch(base+'/api/admin/auth/logout',{method:'POST',headers:{origin:base,cookie,'x-csrf-token':csrfToken}})).status,200);assert.equal((await fetch(base+'/api/admin/dashboard',{headers:{cookie}})).status,401);
 });

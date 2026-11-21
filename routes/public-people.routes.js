@@ -3,13 +3,17 @@ import path from 'node:path';
 import {asyncHandler} from '../lib/http.js';
 import {publishedPeople,publicPerson,personImages,profileType,peopleMediaDir,personDTO} from '../services/people.service.js';
 import {renderPerson,renderPeopleCatalog,personHref,renderTeam,teamCardId} from '../services/people-render.service.js';
-export function peoplePreviewRouter({db,config,requireAuth}){const router=Router();router.get('/person-preview',requireAuth.page,asyncHandler(async(req,res)=>{
- const row=typeof req.query.id==='string'?await db.person.findUnique({where:{id:req.query.id}}):null;
- if(!row)return res.status(404).sendFile(path.join(config.ROOT,'admin-pages/not-found.html'));
- const p=personDTO(row),role=req.query.role||p.primaryRole;
- if(!['athlete','coach'].includes(role)||!(role==='athlete'?p.isAthlete:p.isCoach))return res.status(404).sendFile(path.join(config.ROOT,'admin-pages/not-found.html'));
- res.type('html').send(await renderPerson(config,p,role,await publishedPeople(db),true));
-}));return router;}
+export function peoplePreviewRouter({db, config, requireAuth}) {
+  const router = Router();
+  router.get('/person-preview', requireAuth.page, asyncHandler(async (req, res) => {
+    const row = typeof req.query.id === 'string' ? await db.person.findUnique({where: {id: req.query.id}}) : null;
+    if (!row) return res.status(404).sendFile(path.join(config.ROOT, 'admin-pages/not-found.html'));
+    const person = personDTO(row);
+    res.type('html').send(await renderTeam(config, [person], {previewId: person.id}));
+  }));
+  return router;
+}
+
 export default function createPublicPeopleRouter({db,config}){
  const router=Router();router.use((_req,res,next)=>{res.set('Cache-Control','no-store');next();});
  const notFound=res=>res.status(404).sendFile(path.join(config.ROOT,'public/404.html'));

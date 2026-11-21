@@ -58,12 +58,13 @@ export function renderHomePeople(html,people){const rows=people.filter(x=>x.isAt
  return html.replace(/(<div class="home-feed__athletes-track"[^>]*>)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/section>)/,(_m,start,end)=>start+cards+end).replace(/(<span class="home-feed__counter" data-athletes-counter[^>]*>)[^<]*(<\/span>)/,(_m,a,b)=>a+(rows.length?'01 / '+String(rows.length).padStart(2,'0'):'00 / 00')+b);
 }
 
-export const teamCardId = person => 'team-' + person.slug;
+export const teamCardId = person => 'team-' + (person.slug || person.id);
 
-function teamCards(people, isCoach) {
+function teamCards(people, isCoach, preview) {
   const cards = people.map((person, index) => {
     const lead = isCoach && index === 0 ? ' club-team__card--lead' : '';
     const portrait = isCoach ? person.coachPortrait || person.portrait : person.portrait;
+    const portraitSrc = preview ? portrait?.replace(/^\/media\/people\//, '/api/admin/people/media/') : portrait;
     const title = isCoach
       ? person.coachTitle || person.specialization
       : person.athleteTitle || person.discipline;
@@ -72,7 +73,7 @@ function teamCards(people, isCoach) {
       : '';
 
     return `<li class="club-team__card${lead}" id="${e(teamCardId(person))}">
-      ${portrait ? `<figure class="club-team__portrait">${img(portrait, person.portraitAlt, person.photoCredit)}</figure>` : ''}
+      ${portrait ? `<figure class="club-team__portrait">${img(portraitSrc, person.portraitAlt, person.photoCredit)}</figure>` : ''}
       <div class="club-team__body">
         <h3>${e(person.name)}</h3>
         ${title ? `<p>${e(title)}</p>` : ''}
@@ -84,16 +85,22 @@ function teamCards(people, isCoach) {
   return `<ul class="club-team__cards" role="list">${cards.join('\n')}</ul>`;
 }
 
-export async function renderTeam(config, people) {
+export async function renderTeam(config, people, {previewId} = {}) {
   let html = await readFile(path.join(config.ROOT, 'public/team.html'), 'utf8');
   const trainers = people.filter(person => person.isCoach);
   const athletes = people.filter(person => person.isAthlete && !person.isCoach);
 
+  const preview = Boolean(previewId);
+  if (preview) {
+    html = html.replace('<h1>Спортсостав</h1>', () => `<h1>Спортсостав</h1>
+        <p>Предпросмотр рабочей версии · <a class="home-link" href="/admin/person-edit?id=${e(encodeURIComponent(previewId))}">Вернуться в редактор</a></p>`);
+  }
+
   if (trainers.length) {
-    html = html.replace(/<!-- team:trainers:start -->[\s\S]*?<!-- team:trainers:end -->/, () => teamCards(trainers, true));
+    html = html.replace(/<!-- team:trainers:start -->[\s\S]*?<!-- team:trainers:end -->/, () => teamCards(trainers, true, preview));
   }
   if (athletes.length) {
-    html = html.replace(/<!-- team:athletes:start -->[\s\S]*?<!-- team:athletes:end -->/, () => teamCards(athletes, false));
+    html = html.replace(/<!-- team:athletes:start -->[\s\S]*?<!-- team:athletes:end -->/, () => teamCards(athletes, false, preview));
   }
   return html;
 }
