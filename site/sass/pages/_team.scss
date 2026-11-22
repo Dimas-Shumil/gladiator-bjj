@@ -3,7 +3,17 @@
 .club-team__intro {
   padding-block: clamp(32px, 5vw, 76px);
   border-bottom: 1px solid v.$color-border;
-  background: linear-gradient(110deg, v.$color-background 42%, #261014);
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, 0.75), transparent 72%),
+    url('/site/img/hero/hero-roster.webp') center 53% / cover no-repeat,
+    v.$color-background;
+
+  @media (max-width: v.$breakpoint-mobile) {
+    background-image:
+      linear-gradient(90deg, rgba(10, 10, 10, 0.92), rgba(10, 10, 10, 0.32)),
+      url('/site/img/hero/hero-roster.webp');
+    background-position: center, 90% center;
+  }
 
   h1 {
     margin-bottom: 12px;

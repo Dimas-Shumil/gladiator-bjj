@@ -39,7 +39,7 @@ async function credentials() {
 
 async function main() {
   const {login, password, name, role} = await credentials();
-  if (!/^[a-z0-9._-]{3,100}$/.test(login)) throw Error('Логин: 3–100 символов латиницы, цифр, ._-');
+  if (!/^[a-z0-9._@-]{3,100}$/.test(login)) throw Error('Логин: 3–100 символов. Допустимы латинские буквы, цифры и символы . _ @ -');
   if (password.length < 12 || password.length > 256) throw Error('Пароль должен содержать от 12 до 256 символов.');
   if (!name || name.length > 180) throw Error('Имя: от 1 до 180 символов.');
   if (!['OWNER', 'EDITOR'].includes(role)) throw Error('Роль: OWNER или EDITOR.');

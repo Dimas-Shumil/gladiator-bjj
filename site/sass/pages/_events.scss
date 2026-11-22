@@ -9,6 +9,20 @@
   border-bottom: 1px solid v.$color-border;
 }
 
+.events-hero:not(.events-hero--detail) {
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, 0.8), transparent 72%),
+    url('/site/img/hero/hero-tournament.webp') center 39% / cover no-repeat,
+    v.$color-background;
+
+  @media (max-width: v.$breakpoint-mobile) {
+    background-image:
+      linear-gradient(90deg, rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.35)),
+      url('/site/img/hero/hero-tournament.webp');
+    background-position: center, 83% center;
+  }
+}
+
 .events-hero__inner {
   padding-block: clamp(36px, 5.5vw, 82px);
 

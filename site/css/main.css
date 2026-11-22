@@ -1358,7 +1358,13 @@ body.menu-open {
 .club-team__intro {
   padding-block: clamp(32px, 5vw, 76px);
   border-bottom: 1px solid #303030;
-  background: linear-gradient(110deg, #0a0a0a 42%, #261014);
+  background: linear-gradient(90deg, rgba(10, 10, 10, 0.75), transparent 72%), url("/site/img/hero/hero-roster.webp") center 53%/cover no-repeat, #0a0a0a;
+}
+@media (max-width: 767px) {
+  .club-team__intro {
+    background-image: linear-gradient(90deg, rgba(10, 10, 10, 0.92), rgba(10, 10, 10, 0.32)), url("/site/img/hero/hero-roster.webp");
+    background-position: center, 90% center;
+  }
 }
 .club-team__intro h1 {
   margin-bottom: 12px;
@@ -1496,6 +1502,16 @@ body.menu-open {
 .events-hero {
   background: linear-gradient(110deg, #0a0a0a 40%, #2a1218);
   border-bottom: 1px solid #303030;
+}
+
+.events-hero:not(.events-hero--detail) {
+  background: linear-gradient(90deg, rgba(10, 10, 10, 0.8), transparent 72%), url("/site/img/hero/hero-tournament.webp") center 39%/cover no-repeat, #0a0a0a;
+}
+@media (max-width: 767px) {
+  .events-hero:not(.events-hero--detail) {
+    background-image: linear-gradient(90deg, rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.35)), url("/site/img/hero/hero-tournament.webp");
+    background-position: center, 83% center;
+  }
 }
 
 .events-hero__inner {

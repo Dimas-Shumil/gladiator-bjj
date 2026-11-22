@@ -91,6 +91,12 @@ button {
   cursor: pointer;
 }
 
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
 img,
 svg,
 picture,
@@ -184,6 +190,10 @@ body[dir=rtl] select:not([multiple]):not([size]) {
 }
 #site-header ~ main {
   padding-top: 106px;
+}
+
+main section[id] {
+  scroll-margin-top: 106px;
 }
 
 #site-header ~ main:has(> .hero) {
@@ -295,9 +305,9 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   transition: color 0.2s ease;
 }
 
-.header__nav > a:hover:not(.header__signup),
-.header__nav a.is-current:not(.header__signup),
-.header__events > summary:hover,
+.header__nav > a:is(:hover, :focus-visible):not(.header__signup),
+.header__nav > a.is-current,
+.header__events > summary:is(:hover, :focus-visible),
 .header__events.is-current > summary,
 .header__events[open] > summary {
   color: #ffffff;
@@ -350,7 +360,7 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   border: 0;
   background: transparent;
   color: #f5f5f5;
-  transition: color 0.2s ease;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .header__search svg {
@@ -358,11 +368,34 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   height: 20px;
 }
 
-.header__search:hover,
-.header__burger:hover {
-  color: #c61121;
+.header__search[aria-expanded=true],
+.header__burger[aria-expanded=true] {
+  background-color: #1a1a1a;
 }
 
+@media (hover: hover) {
+  .header__search:hover,
+  .header__burger:hover,
+  .site-search__close:hover {
+    background-color: #303030;
+  }
+}
+.header__search:focus-visible,
+.header__burger:focus-visible,
+.site-search__close:focus-visible,
+.site-search__input:focus-visible,
+.site-search__results a:focus-visible {
+  outline: 2px solid #f04b5b;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .header__search:active,
+  .header__burger:active,
+  .site-search__close:active {
+    transform: scale(0.98);
+  }
+}
 .header__signup {
   position: relative;
   isolation: isolate;
@@ -379,26 +412,42 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   line-height: 1.2;
   text-transform: uppercase;
   white-space: nowrap;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .header__signup::before {
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: linear-gradient(110deg, #c61121, #a30d1a);
+  background-color: #c61121;
   clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
   content: "";
-  transition: filter 0.2s ease;
+  transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.header__signup:hover {
-  color: #ffffff;
+.header__signup:focus-visible {
+  outline-color: #ffffff;
 }
 
-.header__signup:hover::before {
-  filter: brightness(1.16);
+.header__signup:is(:focus-visible, :active)::before {
+  background-color: #a30d1a;
 }
 
+@media (hover: hover) {
+  .header__signup:hover::before {
+    background-color: #a30d1a;
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .header__signup:hover {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .header__signup:active {
+    transform: scale(0.98);
+  }
+}
 .header__signup-icon {
   width: 17px;
   height: 17px;
@@ -425,7 +474,7 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.header__dropdown a:hover {
+.header__dropdown a:is(:hover, :focus-visible, .is-current) {
   background: #1a1a1a;
   color: #c61121;
 }
@@ -494,13 +543,12 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   height: 2px;
   background: #c61121;
   transform: scaleX(0);
-  transition: transform 0.35s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   content: "";
 }
 
-.header__nav > a:hover::after,
-.header__nav > a.is-current::after,
-.header__events > summary:hover::after,
+.header__nav > a:is(:hover, :focus-visible, .is-current):not(.header__signup)::after,
+.header__events > summary:is(:hover, :focus-visible)::after,
 .header__events.is-current > summary::after,
 .header__events[open] > summary::after {
   transform: scaleX(1);
@@ -545,6 +593,7 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   color: #f5f5f5;
   font-size: 26px;
   line-height: 1;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .site-search__label {
@@ -576,14 +625,16 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   padding: 10px 0;
   border-bottom: 1px solid #303030;
   font-size: 15px;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .site-search__results a[hidden] {
   display: none;
 }
 
-.site-search__results a:hover {
-  color: #c61121;
+.site-search__results a:is(:hover, :focus-visible, :active) {
+  background-color: #1a1a1a;
+  border-color: #c61121;
 }
 
 .mobile-menu {
@@ -646,11 +697,11 @@ body[dir=rtl] select:not([multiple]):not([size]) {
   font: 600 clamp(25px, 7.8vw, 40px)/1.16 "Oswald", "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
   text-transform: uppercase;
   text-decoration: none;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.mobile-menu__nav a:hover,
-.mobile-menu__nav a.is-current {
-  color: #c61121;
+.mobile-menu__nav a:is(:hover, :focus-visible, :active, .is-current) {
+  color: #f04b5b;
 }
 
 .mobile-menu__bottom {
@@ -705,6 +756,9 @@ body.menu-open {
 @media (max-width: 1180px) {
   #site-header ~ main {
     padding-top: 86px;
+  }
+  main section[id] {
+    scroll-margin-top: 86px;
   }
   #site-header ~ main:has(> .hero) {
     padding-top: 0;
@@ -817,6 +871,8 @@ body.menu-open {
 @media (prefers-reduced-motion: reduce) {
   .header,
   .header *,
+  .header *::before,
+  .header *::after,
   .site-search * {
     transition: none;
   }
@@ -852,10 +908,6 @@ body.menu-open {
   color: #c61121;
 }
 
-.footer__brand:hover {
-  color: #f5f5f5;
-}
-
 .footer__description {
   max-width: 280px;
   margin: 12px 0 0;
@@ -885,12 +937,12 @@ body.menu-open {
   overflow-wrap: anywhere;
   color: #a1a1a1;
   font-size: 14px;
-  transition: color 0.2s ease;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.footer__nav a:hover,
-.footer__bottom a:hover {
-  color: #c61121;
+.footer__nav a:is(:hover, :focus-visible, :active),
+.footer__bottom a:is(:hover, :focus-visible, :active) {
+  color: #f04b5b;
 }
 
 .footer__bottom {

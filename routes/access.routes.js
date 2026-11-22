@@ -14,7 +14,7 @@ export default function({db,requireAuth,validateOrigin}){
   const gymId=b.role==='TRAINER'?b.gymId:null;
   if(b.role==='TRAINER'&&(!gymId||!await db.gym.findUnique({where:{id:gymId}})))throw new HttpError(422,'Выберите зал тренера.');
   const login=text(b.login,'Логин',100,true).toLowerCase(),name=text(b.name,'Имя',180,true);
-  if(!/^[a-z0-9._-]{3,100}$/.test(login))throw new HttpError(422,'Логин: от 3 символов латиницы, цифры, ._-');
+  if(!/^[a-z0-9._@-]{3,100}$/.test(login))throw new HttpError(422,'Логин: 3–100 символов. Допустимы латинские буквы, цифры и символы . _ @ -');
   const data={login,name,role:b.role,gymId,isActive:b.isActive};
   if(b.password){if(typeof b.password!=='string'||b.password.length<12||b.password.length>256)throw new HttpError(422,'Пароль: 12–256 символов.');data.passwordHash=await hashPassword(b.password);}
   if(!req.params.id&&!data.passwordHash)throw new HttpError(422,'Укажите пароль новой учётной записи.');

@@ -98,12 +98,11 @@ input[type=button], input[type=submit], input[type=reset],
   font: 500 18px/1.1 "Oswald", sans-serif;
 }
 .admin .brand img {
+  flex-shrink: 0;
   width: 58px;
   height: 58px;
-  background: white;
   border-radius: 50%;
   object-fit: contain;
-  padding: 3px;
 }
 .admin .navigation {
   display: grid;
@@ -733,12 +732,9 @@ input[type=button], input[type=submit], input[type=reset],
 }
 
 .admin .login-brand img {
-  width: 96px;
-  height: 96px;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 50%;
-  padding: 5px;
+  width: 180px;
+  max-width: 100%;
+  height: auto;
   margin-bottom: 24px;
 }
 
@@ -782,8 +778,7 @@ input[type=button], input[type=submit], input[type=reset],
     font-size: 28px;
   }
   .admin .login-brand img {
-    width: 64px;
-    height: 64px;
+    width: 120px;
   }
   .admin .login-panel {
     max-width: none;
