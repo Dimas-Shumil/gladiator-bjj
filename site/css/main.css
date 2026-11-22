@@ -1055,6 +1055,79 @@ body.menu-open {
     padding-inline: 22px;
   }
 }
+.club-actions {
+  position: fixed;
+  z-index: 900;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+}
+.club-actions.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transform: none;
+}
+.club-actions__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #656565;
+  border-radius: 2px;
+  background: #1a1a1a;
+  color: #ffffff;
+  font: 700 15px/1.15 "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+  text-transform: uppercase;
+}
+.club-actions__link:is(:hover, :focus-visible) {
+  border-color: #ffffff;
+}
+.club-actions__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+.club-actions > .club-actions__link {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+}
+.club-actions > .club-actions__link svg {
+  width: 22px;
+  height: 22px;
+}
+.club-actions__link--call {
+  border-color: #c61121;
+  background: #c61121;
+}
+.club-actions__link--call:hover {
+  background: #a30d1a;
+}
+
+body.menu-open .club-actions {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.club-contacts #training-signup {
+  margin-top: 24px;
+}
+.club-contacts p {
+  margin-block: 8px 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-actions {
+    transition: none;
+  }
+}
 .club-about__hero {
   position: relative;
   isolation: isolate;

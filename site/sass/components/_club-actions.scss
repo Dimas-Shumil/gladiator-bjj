@@ -1,0 +1,86 @@
+@use '../base/variables' as v;
+
+.club-actions {
+  position: fixed;
+  z-index: 900;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity v.$duration-fast, visibility v.$duration-fast, transform v.$duration-fast;
+
+  &.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: none;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid #656565;
+    border-radius: v.$radius-button-public;
+    background: v.$color-card;
+    color: v.$color-white;
+    font: 700 15px/1.15 v.$font-display;
+    text-transform: uppercase;
+
+    &:is(:hover, :focus-visible) {
+      border-color: v.$color-white;
+    }
+
+    &:focus-visible {
+      outline: 2px solid v.$color-white;
+      outline-offset: 3px;
+    }
+  }
+
+  > .club-actions__link {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &__link--call {
+    border-color: v.$color-red;
+    background: v.$color-red;
+
+    &:hover {
+      background: v.$color-red-hover;
+    }
+  }
+}
+
+body.menu-open .club-actions {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.club-contacts {
+  #training-signup {
+    margin-top: 24px;
+  }
+
+  p {
+    margin-block: 8px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-actions {
+    transition: none;
+  }
+}
