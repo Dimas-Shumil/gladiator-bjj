@@ -1,6 +1,6 @@
 import path from 'node:path';
 import {readFile} from 'node:fs/promises';
-import {profileType} from './people.service.js';
+import {profileType, teamRole} from './people.service.js';
 import {e} from './news-render.service.js';
 export const personHref=(p,role=p.primaryRole)=>'/'+profileType(p,role)+'/'+p.slug;
 const empty='<p class="person-empty">Материалы пока не добавлены.</p>';
@@ -72,7 +72,9 @@ function teamCards(people, isCoach, preview) {
       ? `<p>${e(person.summary)}</p>`
       : '';
 
-    const href = !preview && person.isAthlete ? '/people/' + encodeURIComponent(person.slug) : '';
+    const href = !preview && person.slug
+      ? '/people/' + encodeURIComponent(person.slug)
+      : '';
     const content = `
       ${portrait ? `<figure class="club-team__portrait">${img(portraitSrc, person.portraitAlt, person.photoCredit)}</figure>` : ''}
       <div class="club-team__body">
@@ -90,8 +92,8 @@ function teamCards(people, isCoach, preview) {
 
 export async function renderTeam(config, people, {previewId} = {}) {
   let html = await readFile(path.join(config.ROOT, 'public/team.html'), 'utf8');
-  const trainers = people.filter(person => person.isCoach);
-  const athletes = people.filter(person => person.isAthlete && !person.isCoach);
+  const trainers = people.filter(person => teamRole(person) === 'coach');
+  const athletes = people.filter(person => teamRole(person) === 'athlete');
 
   const preview = Boolean(previewId);
   if (preview) {

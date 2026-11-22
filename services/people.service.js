@@ -3,6 +3,12 @@ import path from 'node:path';
 import {access} from 'node:fs/promises';
 import {HttpError,text,version} from '../lib/validation.js';
 const fail=message=>{throw new HttpError(422,message);};
+export function teamRole(person) {
+ if (person.isCoach && person.isAthlete) return person.primaryRole === 'athlete' ? 'athlete' : 'coach';
+ if (person.isCoach) return 'coach';
+ if (person.isAthlete) return 'athlete';
+ return null;
+}
 export const peopleMediaDir=config=>config.peopleUploadDir||path.join(config.ROOT,'var/people-media');
 export const profileType=(p,role=p.primaryRole)=>role==='athlete'?(p.athleteLegend?'athlete':'athlete-profile'):(p.coachLegend?'coach-legend':'coach-profile');
 export const personDTO=p=>({...JSON.parse(p.payload),id:p.id,status:p.status,version:p.version,slug:p.slug,hasPublished:!!p.publishedPayload,hasChanges:!!p.publishedPayload&&p.payload!==p.publishedPayload});
@@ -34,7 +40,12 @@ export function validatePerson(b,publishing=false){
  d.publicPupils=list('publicPupils',30,x=>({personId:text(x.personId,'Публичный профиль воспитанника',100,true),description:text(x.description,'Достижения воспитанника',2000)}));
  if(new Set(d.publicPupils.map(x=>x.personId)).size!==d.publicPupils.length)fail('Воспитанник повторяется в списке.');
  d.gallery=list('gallery',30,x=>{if(!['competition','training','awards','students','archive'].includes(x.category))fail('Проверьте категорию фотографии.');const src=image(x.src);if(!src)fail('Выберите файл фотографии.');return {src,alt:text(x.alt,'Alt',1000),caption:text(x.caption,'Подпись',2000),credit:text(x.credit,'Автор фотографии',1000),category:x.category};});
- if(publishing){if(d.isAthlete&&!(d.bio||d.athleteBio))fail('Заполните общую биографию или биографию спортсмена.');if(d.isCoach&&!(d.bio||d.coachBio))fail('Заполните общую биографию или биографию тренера.');if(!d.portrait)fail('Перед публикацией добавьте основной портрет.');}
+ d.isCoach=d.primaryRole==='coach';
+ d.isAthlete=d.primaryRole==='athlete';
+ d.coachLegend=d.isCoach&&d.coachLegend;
+ d.athleteLegend=d.isAthlete&&d.athleteLegend;
+ d.showOnHome=d.isAthlete&&d.showOnHome;
+ if(publishing){if(d.isAthlete&&!(d.bio||d.athleteBio))fail('Заполните общую биографию или биографию спортсмена.');if(d.isCoach&&!(d.bio||d.coachBio))fail('Заполните общую биографию или биографию тренера.');if(!(d.portrait||(d.isCoach&&d.coachPortrait)))fail('Перед публикацией добавьте портрет.');}
  return d;
 }
 export function personImages(p){return [p.portrait,p.coachPortrait,p.storyImage,p.hallHoverPhoto,...p.gallery.map(g=>g.src)].filter(Boolean);}

@@ -5,14 +5,13 @@ mount('person-edit',ctx=>{
  const missing=params.has('id')&&!p;
  const newCoach=params.get('role')==='coach';
  p=p||{name:'',isAthlete:!newCoach,isCoach:newCoach,athleteLegend:false,coachLegend:false,showOnHome:false,primaryRole:newCoach?'coach':'athlete',status:'draft',athleteAwards:[],coachAwards:[],timeline:[],methods:[],publicPupils:[],gallery:[]};
- const check=(key,label)=>`<label class="person-check"><input type="checkbox" name="${key}" ${p[key]?'checked':''}>${label}</label>`;
  const imageURL=src=>(src||'').replace('/media/people/','/api/admin/people/media/');
  let assets=[];
  const photoLabels={portrait:'Основной портрет',coachPortrait:'Фото тренера',storyImage:'Фото биографии',hallHoverPhoto:'Второе фото карточки легенды — при наведении'};
  const photoHelp={
-  portrait:'Портрет в верхнем блоке страницы спортсмена и в карточке спортсостава. Нужен для публикации.',
-  coachPortrait:'Фото в карточке тренера. Если поле пустое, используется основной портрет.',
-  storyImage:'Дополнительное фото для блока «О спортсмене».',
+  portrait:'Портрет для профиля и карточки спортсостава. Нужен для публикации.',
+  coachPortrait:'Фото в профиле и карточке тренера. Если поле пустое, используется основной портрет.',
+  storyImage:'Дополнительное фото для блока биографии.',
   hallHoverPhoto:'Дополнительное фото для старых карточек.'
  };
  const sources=()=>[...new Set([p.portrait,p.coachPortrait,p.storyImage,p.hallHoverPhoto,...p.gallery.map(g=>g.src),...assets.map(a=>a.src)].filter(Boolean))];
@@ -42,11 +41,12 @@ mount('person-edit',ctx=>{
    <p class="form-note">Сохранение обновляет черновик. Публикация выводит его на сайт.</p>
    ${formMessage}
    <form id="person-form">
+    <h3>Тип профиля</h3>
+    ${select('Роль','primaryRole',[['coach','Тренер'],['athlete','Спортсмен']],p.primaryRole)}
     <h3>Основное</h3>
     <div class="form-grid">
      ${field('ФИО','name',p.name,'text',true,'maxlength="180"')}
      ${field('Клуб','club',p.club)}
-     ${check('isAthlete','Спортсмен')}${check('isCoach','Тренер')}
      ${area('Краткое описание для карточки спортсостава','summary',p.summary)}
     </div>
     <details open data-athlete-fields>
@@ -87,7 +87,7 @@ mount('person-edit',ctx=>{
       ${area('Биография тренера (если отличается от общей)','coachBio',p.coachBio)}
       ${area('Цитата тренера','coachQuote',p.coachQuote)}
       ${area('Философия подготовки','methodQuote',p.methodQuote)}
-      ${area('Школа чемпионов','school',p.school)}
+      ${area('Подход к тренировкам','school',p.school)}
      </div>
      ${repeater('methods')}${repeater('coachAwards')}${repeater('publicPupils')}
     </details>
@@ -95,13 +95,8 @@ mount('person-edit',ctx=>{
      <summary>Дополнительные настройки</summary>
      <div class="form-grid">
       ${field('Порядок отображения','sortOrder',p.sortOrder??1000,'number',true,'min="0" max="999999" step="1"')}
-      ${select('Основная роль','primaryRole',[['athlete','Спортсмен'],['coach','Тренер']],p.primaryRole)}
-      ${check('showOnHome','Показывать в блоке спортсменов на главной')}
-      ${check('athleteLegend','Легенда спорта — спортсмен')}
-      ${check('coachLegend','Легенда спорта — тренер')}
       ${area('Общая цитата','quote',p.quote)}
      </div>
-     ${imageField('hallHoverPhoto')}
     </details>
     <div class="form-actions">
      <button class="btn btn--primary" type="submit">Сохранить</button>
@@ -117,9 +112,9 @@ mount('person-edit',ctx=>{
  const mark=()=>{dirty=true;ctx.setDirty(true);ctx.root.querySelectorAll('[data-delete-asset]').forEach(el=>el.disabled=true);};
  const controls=disabled=>ctx.root.querySelectorAll('#person-form input,#person-form textarea,#person-form select,#person-form button,[data-person-action],[data-delete-asset]').forEach(el=>{el.disabled=!!(disabled||(p.status==='archived'&&el.closest('form'))||(el.matches('[data-person-upload]')&&!p.id)||(el.matches('[data-clear-image]')&&!form.elements[el.dataset.clearImage].value)||(el.matches('[data-delete-asset]')&&(dirty||el.dataset.used==='true')));});
  controls(false);
- function roles(){const a=form.elements.isAthlete.checked,c=form.elements.isCoach.checked;if(!a){form.elements.athleteLegend.checked=false;form.elements.showOnHome.checked=false;}form.elements.showOnHome.disabled=!a;if(!c)form.elements.coachLegend.checked=false;form.elements.athleteLegend.disabled=!a;form.elements.coachLegend.disabled=!c;form.elements.primaryRole.querySelector('[value=athlete]').disabled=!a;form.elements.primaryRole.querySelector('[value=coach]').disabled=!c;if(a&&!c)form.elements.primaryRole.value='athlete';if(c&&!a)form.elements.primaryRole.value='coach';ctx.root.querySelectorAll('[data-athlete-achievements] input[name$="-title"]').forEach(el=>el.required=a);ctx.root.querySelectorAll('[data-coach-fields] input[name$="-title"]').forEach(el=>el.required=c);ctx.root.querySelector('[data-athlete-fields]').hidden=!a;ctx.root.querySelector('[data-athlete-achievements]').hidden=!a;ctx.root.querySelector('[data-athlete-biography]').hidden=!a;ctx.root.querySelector('[data-coach-fields]').hidden=!c;if(c&&!a)ctx.root.querySelector('[data-coach-fields]').open=true;}
- roles();form.addEventListener('invalid',event=>{const details=event.target.closest('details');if(details)details.open=true;},true);form.addEventListener('input',mark);form.addEventListener('change',ev=>{mark();if(['isAthlete','isCoach'].includes(ev.target.name))roles();if(['portrait','coachPortrait','storyImage','hallHoverPhoto'].includes(ev.target.name)){const image=ctx.root.querySelector('[data-image-preview="'+ev.target.name+'"]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}if(ev.target.name==='gallery-src'){const image=ev.target.closest('[data-row]').querySelector('[data-gallery-preview]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}refreshChoices();});
- const getData=()=>{const d=Object.fromEntries(new FormData(form));d.sortOrder=Number(d.sortOrder);for(const key of ['isAthlete','isCoach','athleteLegend','coachLegend','showOnHome'])d[key]=form.elements[key].checked;for(const key of Object.keys(specs))d[key]=[...form.querySelectorAll('[data-list="'+key+'"] > [data-row]')].map(el=>Object.fromEntries(specs[key].map(([name])=>[name,el.querySelector('[name="'+key+'-'+name+'"]').value]))).filter(value=>Object.entries(value).some(([name,text])=>!['role','category'].includes(name)&&text.trim()));return {...d,status:'draft',version:p.version};};
+ function roles(){const a=form.elements.primaryRole.value==='athlete',c=!a;ctx.root.querySelectorAll('[data-athlete-achievements] input[name$="-title"]').forEach(el=>el.required=a);ctx.root.querySelectorAll('[data-coach-fields] input[name$="-title"]').forEach(el=>el.required=c);ctx.root.querySelector('[data-athlete-fields]').hidden=!a;ctx.root.querySelector('[data-athlete-achievements]').hidden=!a;ctx.root.querySelector('[data-athlete-biography]').hidden=!a;ctx.root.querySelector('[data-coach-fields]').hidden=!c;if(c)ctx.root.querySelector('[data-coach-fields]').open=true;}
+ roles();form.addEventListener('invalid',event=>{const details=event.target.closest('details');if(details)details.open=true;},true);form.addEventListener('input',mark);form.addEventListener('change',ev=>{mark();if(ev.target.name==='primaryRole')roles();if(['portrait','coachPortrait','storyImage','hallHoverPhoto'].includes(ev.target.name)){const image=ctx.root.querySelector('[data-image-preview="'+ev.target.name+'"]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}if(ev.target.name==='gallery-src'){const image=ev.target.closest('[data-row]').querySelector('[data-gallery-preview]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}refreshChoices();});
+ const getData=()=>{const d=Object.fromEntries(new FormData(form));d.sortOrder=Number(d.sortOrder);d.isCoach=d.primaryRole==='coach';d.isAthlete=d.primaryRole==='athlete';d.athleteLegend=Boolean(d.isAthlete&&p.athleteLegend);d.coachLegend=Boolean(d.isCoach&&p.coachLegend);d.showOnHome=Boolean(d.isAthlete&&p.showOnHome);d.hallHoverPhoto=p.hallHoverPhoto||'';for(const key of Object.keys(specs))d[key]=[...form.querySelectorAll('[data-list="'+key+'"] > [data-row]')].map(el=>Object.fromEntries(specs[key].map(([name])=>[name,el.querySelector('[name="'+key+'-'+name+'"]').value]))).filter(value=>Object.entries(value).some(([name,text])=>!['role','category'].includes(name)&&text.trim()));return {...d,status:'draft',version:p.version};};
  async function save(preview=false){if(busy||!form.reportValidity())return;const body=getData();busy=true;controls(true);try{const result=await api('/api/admin/people'+(p.id?'/'+p.id:''),{method:p.id?'PATCH':'POST',body:JSON.stringify(body)});p=result.entity;dirty=false;ctx.setDirty(false);ctx.replace(preview?'/admin/person-preview?id='+p.id:'/admin/person-edit?id='+p.id);}catch(err){feedback(err.message,true);busy=false;controls(false);roles();}}
  function renumberGallery(){form.querySelectorAll('[data-row="gallery"] legend').forEach((el,i)=>el.textContent='Галерея · фото '+(i+1));}
  function refreshChoices(){ctx.root.querySelectorAll('[data-clear-image]').forEach(el=>el.disabled=busy||p.status==='archived'||!form.elements[el.dataset.clearImage].value);for(const select of form.querySelectorAll('[name="portrait"],[name="coachPortrait"],[name="storyImage"],[name="hallHoverPhoto"],[name="gallery-src"]')){const value=select.value;select.replaceChildren(...imageOptions(value).map(([id,label])=>new Option(label,id,false,id===value)));}}
