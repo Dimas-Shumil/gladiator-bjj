@@ -3,16 +3,22 @@ mount('person-edit',ctx=>{
  const {state,params,e,btn,field,area,select,formMessage,feedback,api,canPublish}=ctx;
  let p=state.people.find(x=>x.id===params.get('id'));
  const missing=params.has('id')&&!p;
- p=p||{name:'',isAthlete:true,isCoach:false,athleteLegend:false,coachLegend:false,showOnHome:false,primaryRole:'athlete',status:'draft',athleteAwards:[],coachAwards:[],timeline:[],methods:[],publicPupils:[],gallery:[]};
+ const newCoach=params.get('role')==='coach';
+ p=p||{name:'',isAthlete:!newCoach,isCoach:newCoach,athleteLegend:false,coachLegend:false,showOnHome:false,primaryRole:newCoach?'coach':'athlete',status:'draft',athleteAwards:[],coachAwards:[],timeline:[],methods:[],publicPupils:[],gallery:[]};
  const check=(key,label)=>`<label class="person-check"><input type="checkbox" name="${key}" ${p[key]?'checked':''}>${label}</label>`;
  const imageURL=src=>(src||'').replace('/media/people/','/api/admin/people/media/');
  let assets=[];
  const photoLabels={portrait:'Основной портрет',coachPortrait:'Фото тренера',storyImage:'Фото биографии',hallHoverPhoto:'Второе фото карточки легенды — при наведении'};
- const photoHelp={hallHoverPhoto:'Второй снимок в карточке легенды Зала славы: плавно появляется при наведении мыши. Первый снимок — портрет соответствующего профиля. Если второе фото не задано, остаётся одно основное. На телефоне карточка открывает профиль по нажатию.',portrait:'Главное фото спортсмена: верх страницы, карточка Зала славы и блок на главной. Также используется у тренера, если отдельное фото тренера не выбрано. Обязательно для публикации.',coachPortrait:'Фото для верхнего блока обоих тренерских шаблонов и карточки в каталоге тренеров. Если убрать его, используется основной портрет.',storyImage:'Фото в разделе биографии. У спортсмена-легенды оно также используется в спортивном пути, у тренера-легенды — в блоке «Школа чемпионов».'};
+ const photoHelp={
+  portrait:'Портрет в верхнем блоке страницы спортсмена и в карточке спортсостава. Нужен для публикации.',
+  coachPortrait:'Фото в карточке тренера. Если поле пустое, используется основной портрет.',
+  storyImage:'Дополнительное фото для блока «О спортсмене».',
+  hallHoverPhoto:'Дополнительное фото для старых карточек.'
+ };
  const sources=()=>[...new Set([p.portrait,p.coachPortrait,p.storyImage,p.hallHoverPhoto,...p.gallery.map(g=>g.src),...assets.map(a=>a.src)].filter(Boolean))];
  function photoName(src,index){const form=ctx.root.querySelector('#person-form');const labels=Object.entries(photoLabels).filter(([key])=>(form?.elements[key]?.value??p[key])===src).map(([,label])=>label);if(form){[...form.querySelectorAll('[data-row="gallery"]')].forEach((row,i)=>{if(row.querySelector('[name="gallery-src"]').value===src)labels.push('Галерея · фото '+(i+1));});}else p.gallery.forEach((g,i)=>{if(g.src===src)labels.push('Галерея · фото '+(i+1));});return labels.length?[...new Set(labels)].join(' / '):(assets.some(a=>a.src===src)?'Загруженное фото '+(assets.findIndex(a=>a.src===src)+1):'Фото из проекта '+(index+1));}
  const imageOptions=current=>[['','Без изображения'],...[...new Set([current,...sources()].filter(Boolean))].map((src,i)=>[src,photoName(src,i)])];
- const imageField=(key,label)=>`<fieldset class="person-image-field"><legend>${photoLabels[key]}</legend><p class="form-note">${photoHelp[key]}</p>${select('Выбранная фотография',key,imageOptions(p[key]),p[key]||'')}<img data-image-preview="${key}" class="news-image-preview" ${p[key]?`src="${e(imageURL(p[key]))}"`:''} alt="${e(photoLabels[key])}" ${p[key]?'':'hidden'}><div class="actions"><button class="btn" type="button" data-clear-image="${key}">Убрать фото из этого поля</button></div><label>Загрузить: ${photoLabels[key].toLocaleLowerCase('ru')}<input type="file" accept="image/jpeg,image/png,image/webp" data-person-upload="${key}" ${p.id?'':'disabled'}></label></fieldset>`;
+ const imageField=key=>`<fieldset class="person-image-field"><legend>${photoLabels[key]}</legend><p class="form-note">${photoHelp[key]}</p>${select('Выбранная фотография',key,imageOptions(p[key]),p[key]||'')}<img data-image-preview="${key}" class="news-image-preview" ${p[key]?`src="${e(imageURL(p[key]))}"`:''} alt="${e(photoLabels[key])}" ${p[key]?'':'hidden'}><div class="actions"><button class="btn" type="button" data-clear-image="${key}">Убрать фото из этого поля</button></div><label>Загрузить: ${photoLabels[key].toLocaleLowerCase('ru')}<input type="file" accept="image/jpeg,image/png,image/webp" data-person-upload="${key}" ${p.id?'':'disabled'}></label></fieldset>`;
  const specs={
   athleteAwards:[['date','Дата / период'],['title','Название результата'],['text','Описание','area'],['place','Место (необязательно)']],
   coachAwards:[['date','Дата / период'],['title','Название заслуги / результата'],['text','Описание: уточните личный результат или успех воспитанников','area'],['place','Место (необязательно)']],
@@ -22,16 +28,97 @@ mount('person-edit',ctx=>{
   gallery:[['src','Изображение','image'],['alt','Alt-текст'],['caption','Подпись'],['credit','Автор / права'],['category','Категория','category']]
  };
  const limits={athleteAwards:40,coachAwards:40,timeline:40,methods:12,publicPupils:30,gallery:30};
- const labels={athleteAwards:'Спортивные достижения',coachAwards:'Тренерские заслуги и результаты',timeline:'Этапы пути',methods:'Принципы подготовки',publicPupils:'Публичные воспитанники',gallery:'Галерея'};
+ const labels={athleteAwards:'Спортивные достижения',coachAwards:'Тренерские заслуги и результаты',timeline:'Спортивный путь',methods:'Принципы подготовки',publicPupils:'Публичные воспитанники',gallery:'Фотогалерея'};
  function row(key,value={}){return `<fieldset class="person-repeater-row" data-row="${key}"><legend>${labels[key]}</legend>${key==='gallery'?`<img class="news-image-preview" data-gallery-preview ${value.src?`src="${e(imageURL(value.src))}"`:''} alt="Фотография галереи" ${value.src?'':'hidden'}>`:''}<div class="form-grid">${specs[key].map(([name,label,type])=>{const input=key+'-'+name,v=value[name]||'';if(type==='area')return area(label,input,v);if(type==='role')return select(label,input,[['all','Оба профиля'],['athlete','Спортсмен'],['coach','Тренер']],v||'all');if(type==='category')return select(label,input,[['training','Тренировки'],['competition','Соревнования'],['awards','Награждения'],['students','Воспитанники'],['archive','Архив']],v||'training');if(type==='person')return select(label,input,[['','Выберите человека'],...state.people.filter(x=>x.id!==p.id&&x.isAthlete).map(x=>[x.id,x.name+(x.hasPublished?'':' · не опубликован')])],v);if(type==='image')return select(label,input,imageOptions(v),v);return field(label,input,v,'text',name==='title');}).join('')}</div><div class="actions"><button class="btn" type="button" data-move="up">Выше</button><button class="btn" type="button" data-move="down">Ниже</button><button class="btn" type="button" data-remove-row>${key==='gallery'?'Убрать фото из галереи':'Удалить строку'}</button></div></fieldset>`;}
- const repeater=key=>`<div class="person-repeater"><h3>${labels[key]}</h3>${key==='gallery'?'<p class="form-note">Общая галерея в нижнем блоке «Фото и видео» обоих профилей человека. Подпись и авторство видны при просмотре фотографии. Здесь можно убрать фото и изменить порядок.</p>':''}${key==='publicPupils'?'<p class="form-note">Только отдельные публичные профили спортсменов. Контакты, ученики зала и оплаты не используются. Неопубликованные профили на сайте не показываются.</p>':''}<div data-list="${key}">${p[key].map(x=>row(key,x)).join('')}</div><button class="btn" type="button" data-add="${key}">Добавить строку</button></div>`;
- function render(){if(missing)return ctx.notFound();return `<div class="toolbar">${btn('К списку людей','/admin/people')}<span class="badge">${p.hasPublished?(p.hasChanges?'Опубликовано · есть правки':'Опубликовано'):'Рабочая версия'}</span></div><div class="panel"><p class="form-note">Четыре разных оформления: спортсмен-легенда, тренер-легенда, спортсмен, тренер. Роли и статусы легенды задаются независимо. Публикуют владелец и тренеры.</p>${formMessage}<form id="person-form"><div class="form-grid">${field('ФИО','name',p.name,'text',true,'maxlength="180"')}${area('Краткое описание для карточки','summary',p.summary)}${field('Порядок отображения','sortOrder',p.sortOrder??1000,'number',true,'min="0" max="999999" step="1"')}<p class="form-note">Меньше число — выше человек в своём разделе Зала славы и каталогов, раньше в ленте главной. Например: 1, 2, 3. При одинаковых числах — по алфавиту. Для существующих профилей без порядка используется 1000. Сохраните и опубликуйте профиль, чтобы применить порядок на сайте.</p><fieldset><legend>Спортивная роль</legend>${check('isAthlete','Спортсмен')}${check('showOnHome','Показывать в блоке спортсменов на главной')}${check('athleteLegend','Легенда спорта — спортсмен')}</fieldset><fieldset><legend>Тренерская роль</legend>${check('isCoach','Тренер')}${check('coachLegend','Легенда спорта — тренер')}</fieldset>${select('Основной профиль для общей ссылки','primaryRole',[['athlete','Спортсмен'],['coach','Тренер']],p.primaryRole)}${field('Город','city',p.city)}${field('Клуб','club',p.club)}${area('Общая биография','bio',p.bio)}${area('Общая цитата','quote',p.quote)}</div><h2>Фотографии профиля</h2><div class="form-grid person-photo-fields">${imageField('portrait','Основной портрет * для публикации')}${imageField('coachPortrait','Отдельное фото для тренерского профиля (необязательно)')}${imageField('storyImage','Фото для биографии')}${imageField('hallHoverPhoto','Второе фото карточки легенды')}</div><div class="form-grid">${field('Описание портрета для доступности (alt)','portraitAlt',p.portraitAlt)}${field('Автор / права: подпись к портрету','photoCredit',p.photoCredit)}${field('Подпись фото биографии','storyCaption',p.storyCaption)}</div><p class="form-note">Чтобы закрепить добавление или удаление фото, сохраните профиль. На сайте изменения появятся после подтверждения публикации владельцем. Основной портрет нужен для публикации: при его удалении выберите замену. Сначала сохраните нового человека, затем загрузите изображения. JPEG/PNG/WebP до 8 МиБ и 40 млн пикселей; без анимации. После загрузки сохраните изменения.</p><details open data-athlete-fields><summary>Спортсмен: данные и достижения</summary><div class="form-grid">${field('Звание спортсмена','athleteTitle',p.athleteTitle)}${field('Дисциплина','discipline',p.discipline)}${field('Статус спортсмена','athleteStatus',p.athleteStatus)}${field('Тренер / наставники','trainer',p.trainer)}${area('Биография для спортивного профиля (вместо общей)','athleteBio',p.athleteBio)}${area('Цитата для спортивного профиля','athleteQuote',p.athleteQuote)}</div>${repeater('athleteAwards')}</details><details data-coach-fields><summary>Тренер: работа и воспитанники</summary><div class="form-grid">${field('Тренерское звание / должность','coachTitle',p.coachTitle)}${field('Специализация','specialization',p.specialization)}${field('Тренерский стаж','experience',p.experience)}${area('Биография для тренерского профиля (вместо общей)','coachBio',p.coachBio)}${area('Цитата для тренерского профиля','coachQuote',p.coachQuote)}${area('Философия подготовки — цитата','methodQuote',p.methodQuote)}${area('Школа чемпионов — текст для тренера-легенды','school',p.school)}</div>${repeater('methods')}${repeater('coachAwards')}${repeater('publicPupils')}</details>${repeater('timeline')}${repeater('gallery')}<label>Загрузить фотографии галереи<input type="file" multiple accept="image/jpeg,image/png,image/webp" data-person-upload="gallery" ${p.id?'':'disabled'}></label><div class="form-actions"><button class="btn btn--primary" type="submit">Сохранить</button><button class="btn" type="button" id="person-preview">Сохранить и посмотреть</button></div></form><section class="person-media-panel"><h2>Загруженные фотографии этого человека</h2><p class="form-note">Здесь можно окончательно удалить неиспользуемые файлы. Используемое фото сначала уберите из полей и галереи, сохраните изменения и обновите публикацию либо снимите профиль с сайта.</p><div id="person-media-library" aria-live="polite">${p.id?'Загрузка фотографий…':'Список появится после первого сохранения человека.'}</div></section><div class="form-actions">${canPublish&&p.id&&p.status!=='archived'?'<button class="btn btn--primary" type="button" data-person-action="publish">Опубликовать сохранённую версию</button>':''}${canPublish&&p.hasPublished?'<button class="btn" type="button" data-person-action="unpublish">Снять с публикации</button>':''}${p.id&&(canPublish||!p.hasPublished)?`<button class="btn" type="button" data-person-action="${p.status==='archived'?'restore':'archive'}">${p.status==='archived'?'Восстановить в черновик':'В архив'}</button>`:''}${p.hasPublished?btn('На сайте','/people/'+p.slug):''}</div>${p.status==='archived'?'<p>Профиль в архиве. Восстановите его в черновик для редактирования.</p>':''}</div>`;}
+ const repeater=key=>`<div class="person-repeater"><h3>${labels[key]}</h3>${key==='gallery'?'<p class="form-note">Снимки для нижнего блока страницы спортсмена. Здесь можно изменить порядок, подписи и авторство.</p>':''}${key==='publicPupils'?'<p class="form-note">Только отдельные публичные профили спортсменов. Контакты, ученики зала и оплаты не используются. Неопубликованные профили на сайте не показываются.</p>':''}<div data-list="${key}">${p[key].map(x=>row(key,x)).join('')}</div><button class="btn" type="button" data-add="${key}">${({athleteAwards:'Добавить достижение',timeline:'Добавить этап',gallery:'Добавить фото'})[key]||'Добавить строку'}</button></div>`;
+ function render(){
+  if(missing)return ctx.notFound();
+  return `<div class="toolbar">
+   ${btn('К списку спортсостава','/admin/people')}
+   <span class="badge">${p.hasPublished?(p.hasChanges?'Опубликовано · есть правки':'Опубликовано'):'Рабочая версия'}</span>
+  </div>
+  <div class="panel">
+   <h2>${p.id?'Редактирование профиля':newCoach?'Новый тренер':'Новый спортсмен'}</h2>
+   <p class="form-note">Сохранение обновляет черновик. Публикация выводит его на сайт.</p>
+   ${formMessage}
+   <form id="person-form">
+    <h3>Основное</h3>
+    <div class="form-grid">
+     ${field('ФИО','name',p.name,'text',true,'maxlength="180"')}
+     ${field('Клуб','club',p.club)}
+     ${check('isAthlete','Спортсмен')}${check('isCoach','Тренер')}
+     ${area('Краткое описание для карточки спортсостава','summary',p.summary)}
+    </div>
+    <details open data-athlete-fields>
+     <summary>Данные спортсмена</summary>
+     <div class="form-grid">
+      ${field('Пояс','belt',p.belt,'text',false,'maxlength="100"')}
+      ${field('Дисциплина','discipline',p.discipline,'text',false,'placeholder="Gi / No-Gi"')}
+      ${field('Звание','athleteTitle',p.athleteTitle)}
+      ${field('Тренер','trainer',p.trainer)}
+      ${field('Статус спортсмена','athleteStatus',p.athleteStatus)}
+      ${field('Город','city',p.city)}
+     </div>
+    </details>
+    <h3>Портрет</h3>
+    ${!p.id?'<p class="form-note">Сначала сохраните профиль, чтобы загрузить фотографии.</p>':''}
+    ${imageField('portrait')}
+    <div class="form-grid">
+     ${field('Описание портрета (alt)','portraitAlt',p.portraitAlt)}
+     ${field('Автор портрета','photoCredit',p.photoCredit)}
+    </div>
+    <div data-athlete-achievements>${repeater('athleteAwards')}</div>
+    ${repeater('timeline')}
+    <h3>Биография</h3>
+    <div class="form-grid">
+     ${area('Общая биография','bio',p.bio)}
+     <div class="span-all" data-athlete-biography>${area('Биография спортсмена (если отличается от общей)','athleteBio',p.athleteBio)}${area('Цитата спортсмена','athleteQuote',p.athleteQuote)}</div>
+     ${imageField('storyImage')}${field('Подпись фото биографии','storyCaption',p.storyCaption)}
+    </div>
+    ${repeater('gallery')}
+    <label>Загрузить фотографии галереи<input type="file" multiple accept="image/jpeg,image/png,image/webp" data-person-upload="gallery" ${p.id?'':'disabled'}></label>
+    <details data-coach-fields>
+     <summary>Данные тренера</summary>
+     ${imageField('coachPortrait')}
+     <div class="form-grid">
+      ${field('Должность','coachTitle',p.coachTitle)}
+      ${field('Специализация','specialization',p.specialization)}
+      ${field('Тренерский стаж','experience',p.experience)}
+      ${area('Биография тренера (если отличается от общей)','coachBio',p.coachBio)}
+      ${area('Цитата тренера','coachQuote',p.coachQuote)}
+      ${area('Философия подготовки','methodQuote',p.methodQuote)}
+      ${area('Школа чемпионов','school',p.school)}
+     </div>
+     ${repeater('methods')}${repeater('coachAwards')}${repeater('publicPupils')}
+    </details>
+    <details>
+     <summary>Дополнительные настройки</summary>
+     <div class="form-grid">
+      ${field('Порядок отображения','sortOrder',p.sortOrder??1000,'number',true,'min="0" max="999999" step="1"')}
+      ${select('Основная роль','primaryRole',[['athlete','Спортсмен'],['coach','Тренер']],p.primaryRole)}
+      ${check('showOnHome','Показывать в блоке спортсменов на главной')}
+      ${check('athleteLegend','Легенда спорта — спортсмен')}
+      ${check('coachLegend','Легенда спорта — тренер')}
+      ${area('Общая цитата','quote',p.quote)}
+     </div>
+     ${imageField('hallHoverPhoto')}
+    </details>
+    <div class="form-actions">
+     <button class="btn btn--primary" type="submit">Сохранить</button>
+     <button class="btn" type="button" id="person-preview">Сохранить и открыть предпросмотр</button>
+    </div>
+   </form>
+   <section class="person-media-panel"><h2>Загруженные фотографии этого человека</h2><p class="form-note">Здесь можно окончательно удалить неиспользуемые файлы. Используемое фото сначала уберите из полей и галереи, сохраните изменения и обновите публикацию либо снимите профиль с сайта.</p><div id="person-media-library" aria-live="polite">${p.id?'Загрузка фотографий…':'Список появится после первого сохранения человека.'}</div></section>
+   <div class="form-actions">${canPublish&&p.id&&p.status!=='archived'?'<button class="btn btn--primary" type="button" data-person-action="publish">Опубликовать сохранённую версию</button>':''}${canPublish&&p.hasPublished?'<button class="btn" type="button" data-person-action="unpublish">Снять с публикации</button>':''}${p.id&&(canPublish||!p.hasPublished)?`<button class="btn" type="button" data-person-action="${p.status==='archived'?'restore':'archive'}">${p.status==='archived'?'Восстановить в черновик':'В архив'}</button>`:''}${p.hasPublished?btn('На сайте','/people/'+p.slug):''}</div>
+   ${p.status==='archived'?'<p>Профиль в архиве. Восстановите его в черновик для редактирования.</p>':''}
+  </div>`;
+ }
  return {render,bind(){if(missing)return;const form=ctx.form;let busy=false,dirty=false;
  const mark=()=>{dirty=true;ctx.setDirty(true);ctx.root.querySelectorAll('[data-delete-asset]').forEach(el=>el.disabled=true);};
  const controls=disabled=>ctx.root.querySelectorAll('#person-form input,#person-form textarea,#person-form select,#person-form button,[data-person-action],[data-delete-asset]').forEach(el=>{el.disabled=!!(disabled||(p.status==='archived'&&el.closest('form'))||(el.matches('[data-person-upload]')&&!p.id)||(el.matches('[data-clear-image]')&&!form.elements[el.dataset.clearImage].value)||(el.matches('[data-delete-asset]')&&(dirty||el.dataset.used==='true')));});
  controls(false);
- function roles(){const a=form.elements.isAthlete.checked,c=form.elements.isCoach.checked;if(!a){form.elements.athleteLegend.checked=false;form.elements.showOnHome.checked=false;}form.elements.showOnHome.disabled=!a;if(!c)form.elements.coachLegend.checked=false;form.elements.athleteLegend.disabled=!a;form.elements.coachLegend.disabled=!c;form.elements.primaryRole.querySelector('[value=athlete]').disabled=!a;form.elements.primaryRole.querySelector('[value=coach]').disabled=!c;if(a&&!c)form.elements.primaryRole.value='athlete';if(c&&!a)form.elements.primaryRole.value='coach';ctx.root.querySelectorAll('[data-athlete-fields] [required]').forEach(el=>el.required=a);ctx.root.querySelectorAll('[data-coach-fields] [required]').forEach(el=>el.required=c);ctx.root.querySelector('[data-athlete-fields]').hidden=!a;ctx.root.querySelector('[data-coach-fields]').hidden=!c;if(c&&!a)ctx.root.querySelector('[data-coach-fields]').open=true;}
- roles();form.addEventListener('input',mark);form.addEventListener('change',ev=>{mark();if(['isAthlete','isCoach'].includes(ev.target.name))roles();if(['portrait','coachPortrait','storyImage','hallHoverPhoto'].includes(ev.target.name)){const image=ctx.root.querySelector('[data-image-preview="'+ev.target.name+'"]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}if(ev.target.name==='gallery-src'){const image=ev.target.closest('[data-row]').querySelector('[data-gallery-preview]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}refreshChoices();});
+ function roles(){const a=form.elements.isAthlete.checked,c=form.elements.isCoach.checked;if(!a){form.elements.athleteLegend.checked=false;form.elements.showOnHome.checked=false;}form.elements.showOnHome.disabled=!a;if(!c)form.elements.coachLegend.checked=false;form.elements.athleteLegend.disabled=!a;form.elements.coachLegend.disabled=!c;form.elements.primaryRole.querySelector('[value=athlete]').disabled=!a;form.elements.primaryRole.querySelector('[value=coach]').disabled=!c;if(a&&!c)form.elements.primaryRole.value='athlete';if(c&&!a)form.elements.primaryRole.value='coach';ctx.root.querySelectorAll('[data-athlete-achievements] input[name$="-title"]').forEach(el=>el.required=a);ctx.root.querySelectorAll('[data-coach-fields] input[name$="-title"]').forEach(el=>el.required=c);ctx.root.querySelector('[data-athlete-fields]').hidden=!a;ctx.root.querySelector('[data-athlete-achievements]').hidden=!a;ctx.root.querySelector('[data-athlete-biography]').hidden=!a;ctx.root.querySelector('[data-coach-fields]').hidden=!c;if(c&&!a)ctx.root.querySelector('[data-coach-fields]').open=true;}
+ roles();form.addEventListener('invalid',event=>{const details=event.target.closest('details');if(details)details.open=true;},true);form.addEventListener('input',mark);form.addEventListener('change',ev=>{mark();if(['isAthlete','isCoach'].includes(ev.target.name))roles();if(['portrait','coachPortrait','storyImage','hallHoverPhoto'].includes(ev.target.name)){const image=ctx.root.querySelector('[data-image-preview="'+ev.target.name+'"]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}if(ev.target.name==='gallery-src'){const image=ev.target.closest('[data-row]').querySelector('[data-gallery-preview]');image.hidden=!ev.target.value;if(ev.target.value)image.src=imageURL(ev.target.value);else image.removeAttribute('src');}refreshChoices();});
  const getData=()=>{const d=Object.fromEntries(new FormData(form));d.sortOrder=Number(d.sortOrder);for(const key of ['isAthlete','isCoach','athleteLegend','coachLegend','showOnHome'])d[key]=form.elements[key].checked;for(const key of Object.keys(specs))d[key]=[...form.querySelectorAll('[data-list="'+key+'"] > [data-row]')].map(el=>Object.fromEntries(specs[key].map(([name])=>[name,el.querySelector('[name="'+key+'-'+name+'"]').value]))).filter(value=>Object.entries(value).some(([name,text])=>!['role','category'].includes(name)&&text.trim()));return {...d,status:'draft',version:p.version};};
  async function save(preview=false){if(busy||!form.reportValidity())return;const body=getData();busy=true;controls(true);try{const result=await api('/api/admin/people'+(p.id?'/'+p.id:''),{method:p.id?'PATCH':'POST',body:JSON.stringify(body)});p=result.entity;dirty=false;ctx.setDirty(false);ctx.replace(preview?'/admin/person-preview?id='+p.id:'/admin/person-edit?id='+p.id);}catch(err){feedback(err.message,true);busy=false;controls(false);roles();}}
  function renumberGallery(){form.querySelectorAll('[data-row="gallery"] legend').forEach((el,i)=>el.textContent='Галерея · фото '+(i+1));}

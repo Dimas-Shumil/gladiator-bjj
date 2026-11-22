@@ -72,13 +72,16 @@ function teamCards(people, isCoach, preview) {
       ? `<p>${e(person.summary)}</p>`
       : '';
 
-    return `<li class="club-team__card${lead}" id="${e(teamCardId(person))}">
+    const href = !preview && person.isAthlete ? '/people/' + encodeURIComponent(person.slug) : '';
+    const content = `
       ${portrait ? `<figure class="club-team__portrait">${img(portraitSrc, person.portraitAlt, person.photoCredit)}</figure>` : ''}
       <div class="club-team__body">
         <h3>${e(person.name)}</h3>
         ${title ? `<p>${e(title)}</p>` : ''}
         ${summary}
-      </div>
+      </div>`;
+    return `<li class="club-team__card${lead}${href ? ' club-team__card--linked' : ''}" id="${e(teamCardId(person))}">
+      ${href ? `<a class="club-team__card-link" href="${e(href)}" aria-label="${e(person.name)}">${content}</a>` : content}
     </li>`;
   });
 

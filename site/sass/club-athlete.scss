@@ -1,0 +1,189 @@
+@use './base/variables' as v;
+
+.club-athlete {
+  --athlete-red: #ff4658;
+  overflow-wrap: anywhere;
+
+  h1, h2 {
+    font-style: italic;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    font-size: clamp(29px, 4vw, 57px);
+    margin: 0 0 24px;
+  }
+
+  h2::after {
+    display: block;
+    width: 44px;
+    height: 3px;
+    margin-top: 13px;
+    background: var(--athlete-red);
+    content: '';
+  }
+
+  figure { margin: 0; }
+  figcaption { color: #bdbdbd; font-size: .8rem; }
+}
+
+.club-athlete__hero {
+  position: relative;
+  isolation: isolate;
+  background: #0c0c0c;
+  border-bottom: 1px solid #333;
+}
+
+.club-athlete__portrait {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 35%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 32%;
+  }
+
+  figcaption {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    padding: 4px 10px;
+    background: #0c0c0c;
+  }
+}
+
+.club-athlete__hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, #0c0c0c 33%, rgba(12,12,12,.76) 51%, transparent 79%);
+  content: '';
+}
+
+.club-athlete__hero-inner {
+  display: flex;
+  min-height: clamp(460px, 47vw, 720px);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block: 35px 55px;
+
+  h1 {
+    max-width: min(57%, 12ch);
+    margin: 8px 0 20px;
+    font-size: clamp(51px, 7.6vw, 122px);
+  }
+}
+
+.club-athlete__back { margin-bottom: clamp(20px, 5vw, 74px); color: #ddd; }
+.club-athlete__back:hover { color: var(--athlete-red); }
+.club-athlete__role { color: var(--athlete-red); font-style: italic; font-weight: 800; text-transform: uppercase; }
+.club-athlete__title { max-width: 54%; color: #ddd; }
+.club-athlete__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 26px;
+  max-width: 53%;
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #767676;
+
+  dt { color: #ccc; font-size: .79rem; }
+  dd { margin: 0; font-weight: 700; }
+}
+
+.club-athlete__awards { background: #1b1b1b; border-block: 1px solid #333; }
+.club-athlete__awards-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 24px;
+  padding-block: 34px;
+}
+.club-athlete__awards ul, .club-athlete__timeline, .club-athlete__gallery ul { margin: 0; padding: 0; list-style: none; }
+.club-athlete__awards li {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 5.5rem) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #555;
+}
+.club-athlete__place { color: var(--athlete-red); font-weight: 800; }
+.club-athlete__story, .club-athlete__gallery { padding-block: clamp(34px, 5vw, 76px); }
+.club-athlete__story {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: clamp(24px, 5vw, 76px);
+
+  > section:only-child { grid-column: 1 / -1; max-width: 78ch; }
+  figure img { width: 100%; max-height: 460px; object-fit: cover; }
+  figure, section > p, blockquote { margin-bottom: 14px; }
+  blockquote { padding-left: 16px; border-left: 3px solid var(--athlete-red); }
+}
+.club-athlete__timeline li {
+  display: grid;
+  grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  gap: 12px;
+
+  > div { padding: 0 0 20px 16px; border-left: 2px solid var(--athlete-red); }
+  h3 { margin: 0 0 6px; font-size: 1.05rem; }
+}
+.club-athlete__gallery ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; }
+.club-athlete__gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.club-athlete__gallery a { display: block; }
+.club-athlete__gallery p { margin: 6px 0; color: #bdbdbd; }
+.club-athlete__preview { padding: 12px 5%; background: #262626; }
+.club-athlete__preview a { text-decoration: underline; }
+
+@media (max-width: v.$breakpoint-mobile) {
+  .club-athlete__portrait { position: relative; inset: auto; height: clamp(250px, 84vw, 440px); }
+  .club-athlete__hero::after { content: none; }
+  .club-athlete__hero-inner { min-height: 0; padding-block: 24px 34px; }
+  .club-athlete__hero-inner h1 { max-width: 100%; font-size: clamp(42px, 10vw, 70px); }
+  .club-athlete__title, .club-athlete__facts { max-width: 100%; }
+  .club-athlete__awards-inner, .club-athlete__story { grid-template-columns: minmax(0, 1fr); }
+  .club-athlete__awards li { grid-template-columns: minmax(0, 5.5rem) minmax(0, 4rem) minmax(0, 1fr); gap: 8px; }
+}
+
+.club-athlete__gallery [data-athlete-photo] { cursor: zoom-in; }
+.club-athlete-lightbox {
+  width: min(100% - 24px, 1100px);
+  max-height: calc(100dvh - 24px);
+  padding: clamp(10px, 2vw, 22px);
+  color: #fff;
+  background: #141414;
+  border: 1px solid #444;
+
+  &::backdrop { background: rgba(0, 0, 0, .88); }
+  button {
+    flex: none;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    color: #fff;
+    background: #242424;
+    border: 1px solid #555;
+    font: 28px/1 sans-serif;
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--athlete-red); }
+  img { width: 100%; height: 100%; min-width: 0; object-fit: contain; user-select: none; }
+  p { margin: 10px 0 0; overflow-wrap: anywhere; text-align: center; }
+  p:empty { display: none; }
+}
+
+body:has(.club-athlete-lightbox[open]) { overflow: hidden; }
+.club-athlete-lightbox__controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.club-athlete-lightbox__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 1.5vw, 16px);
+  height: min(66dvh, 680px);
+  touch-action: pan-y pinch-zoom;
+}

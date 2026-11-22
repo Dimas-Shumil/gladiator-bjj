@@ -1358,12 +1358,12 @@ body.menu-open {
 .club-team__intro {
   padding-block: clamp(32px, 5vw, 76px);
   border-bottom: 1px solid #303030;
-  background: linear-gradient(90deg, rgba(10, 10, 10, 0.75), transparent 72%), url("/site/img/hero/hero-roster.webp") center 53%/cover no-repeat, #0a0a0a;
+  background: #0a0a0a url("/site/img/hero/hero-roster.webp") center 53%/cover no-repeat;
 }
 @media (max-width: 767px) {
   .club-team__intro {
-    background-image: linear-gradient(90deg, rgba(10, 10, 10, 0.92), rgba(10, 10, 10, 0.32)), url("/site/img/hero/hero-roster.webp");
-    background-position: center, 90% center;
+    background-position: 90% center;
+    box-shadow: inset 0 0 0 100vmax rgba(0, 0, 0, 0.58);
   }
 }
 .club-team__intro h1 {
@@ -1442,6 +1442,60 @@ body.menu-open {
   border-top: 2px solid #c61121;
 }
 
+.club-team__card--linked:where(:hover, :focus-within) {
+  border-color: #c61121;
+}
+
+.club-team__card-link {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+.club-team__card-link:focus-visible {
+  outline: 2px solid #c61121;
+  outline-offset: -2px;
+}
+
+.club-team__card-link > .club-team__card-arrow {
+  display: none;
+}
+
+.club-team__card--lead .club-team__card-link {
+  display: grid;
+  grid-column: 1/-1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+#athletes .club-team__cards {
+  grid-template-columns: repeat(auto-fill, minmax(0, min(100%, 248px)));
+}
+
+#athletes .club-team__card .club-team__portrait img {
+  display: block;
+  aspect-ratio: 5/6;
+}
+#athletes .club-team__card .club-team__body {
+  padding: 13px 15px 15px;
+}
+#athletes .club-team__card .club-team__body h3 {
+  margin-bottom: 4px;
+  font-size: clamp(20px, 1.7vw, 26px);
+}
+#athletes .club-team__card .club-team__body p {
+  font-size: 14px;
+}
+#athletes .club-team__card .club-team__body p + p {
+  margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+  #athletes .club-team__cards {
+    grid-template-columns: minmax(0, min(100%, 230px));
+  }
+}
 .club-team__portrait {
   margin: 0;
   background: #0a0a0a;

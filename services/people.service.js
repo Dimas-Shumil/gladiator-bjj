@@ -21,6 +21,7 @@ export function validatePerson(b,publishing=false){
  d.primaryRole=b.primaryRole;
  if(b.showOnHome!=null&&typeof b.showOnHome!=='boolean')fail('Проверьте показ на главной.');d.showOnHome=b.showOnHome===true;if(d.showOnHome&&!d.isAthlete)fail('Блок спортсменов главной требует спортивной роли.');
  for(const key of ['summary','city','club','portraitAlt','photoCredit','storyCaption','athleteTitle','discipline','athleteStatus','trainer','coachTitle','specialization','experience'])d[key]=text(b[key],key,key==='summary'?1000:500);
+ d.belt=text(b.belt,'Пояс',100);
  for(const key of ['quote','athleteQuote','coachQuote','methodQuote'])d[key]=text(b[key],key,2000);
  for(const key of ['bio','athleteBio','coachBio','school'])d[key]=text(b[key],key,25000);
  const image=value=>{const src=text(value,'Изображение',300);if(src&&!/^\/site\/img\/[a-zA-Z0-9_.-]+\.(png|jpe?g|webp|gif)$/.test(src)&&!/^\/media\/people\/[a-f0-9]{48}\.webp$/.test(src))fail('Недопустимый путь изображения.');return src;};

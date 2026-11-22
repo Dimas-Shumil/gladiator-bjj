@@ -3,16 +3,11 @@
 .club-team__intro {
   padding-block: clamp(32px, 5vw, 76px);
   border-bottom: 1px solid v.$color-border;
-  background:
-    linear-gradient(90deg, rgba(10, 10, 10, 0.75), transparent 72%),
-    url('/site/img/hero/hero-roster.webp') center 53% / cover no-repeat,
-    v.$color-background;
+  background: v.$color-background url('/site/img/hero/hero-roster.webp') center 53% / cover no-repeat;
 
   @media (max-width: v.$breakpoint-mobile) {
-    background-image:
-      linear-gradient(90deg, rgba(10, 10, 10, 0.92), rgba(10, 10, 10, 0.32)),
-      url('/site/img/hero/hero-roster.webp');
-    background-position: center, 90% center;
+    background-position: 90% center;
+    box-shadow: inset 0 0 0 100vmax rgba(0, 0, 0, 0.58);
   }
 
   h1 {
@@ -91,6 +86,62 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   align-items: center;
   border-top: 2px solid v.$color-red;
+}
+
+.club-team__card--linked:where(:hover, :focus-within) { border-color: v.$color-red; }
+
+.club-team__card-link {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid v.$color-red;
+    outline-offset: -2px;
+  }
+
+}
+
+.club-team__card-link > .club-team__card-arrow {
+  display: none;
+}
+
+.club-team__card--lead .club-team__card-link {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+#athletes .club-team__cards {
+  grid-template-columns: repeat(auto-fill, minmax(0, min(100%, 248px)));
+}
+
+#athletes .club-team__card {
+  .club-team__portrait img {
+    display: block;
+    aspect-ratio: 5 / 6;
+  }
+
+  .club-team__body {
+    padding: 13px 15px 15px;
+
+    h3 {
+      margin-bottom: 4px;
+      font-size: clamp(20px, 1.7vw, 26px);
+    }
+
+    p { font-size: 14px; }
+    p + p { margin-top: 6px; }
+  }
+}
+
+@media (max-width: 480px) {
+  #athletes .club-team__cards {
+    grid-template-columns: minmax(0, min(100%, 230px));
+  }
 }
 
 .club-team__portrait {

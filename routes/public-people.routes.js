@@ -2,6 +2,7 @@ import {Router} from 'express';
 import path from 'node:path';
 import {asyncHandler} from '../lib/http.js';
 import {publishedPeople,publicPerson,personImages,profileType,peopleMediaDir,personDTO} from '../services/people.service.js';
+import {renderAthleteProfile} from '../services/athlete-profile-render.service.js';
 import {renderPerson,renderPeopleCatalog,personHref,renderTeam,teamCardId} from '../services/people-render.service.js';
 export function peoplePreviewRouter({db, config, requireAuth}) {
   const router = Router();
@@ -9,7 +10,10 @@ export function peoplePreviewRouter({db, config, requireAuth}) {
     const row = typeof req.query.id === 'string' ? await db.person.findUnique({where: {id: req.query.id}}) : null;
     if (!row) return res.status(404).sendFile(path.join(config.ROOT, 'admin-pages/not-found.html'));
     const person = personDTO(row);
-    res.type('html').send(await renderTeam(config, [person], {previewId: person.id}));
+    const html = person.isAthlete && req.query.view !== 'card'
+      ? await renderAthleteProfile(config, person, {preview: true})
+      : await renderTeam(config, [person], {previewId: person.id});
+    res.type('html').send(html);
   }));
   return router;
 }
@@ -60,14 +64,16 @@ export function createTeamRouter({db, config}) {
     res.set('Cache-Control', 'no-store').type('html').send(await renderTeam(config, people));
   }));
 
-  // «На сайте» в админке открывает карточку внутри общего спортсостава.
+  // Опубликованные спортсмены открываются на отдельной странице.
   router.get('/people/:slug', asyncHandler(async (req, res) => {
     const person = await db.person.findFirst({
       where: {slug: req.params.slug, status: 'published', publishedPayload: {not: null}},
-      select: {slug: true}
+      select: {id: true, slug: true, publishedPayload: true}
     });
     res.set('Cache-Control', 'no-store');
     if (!person) return res.status(404).sendFile(path.join(config.ROOT, 'public/404.html'));
+    const profile = publicPerson(person);
+    if (profile.isAthlete) return res.type('html').send(await renderAthleteProfile(config, profile));
     res.redirect(302, '/team#' + encodeURIComponent(teamCardId(person)));
   }));
 
